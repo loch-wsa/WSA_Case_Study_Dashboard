@@ -90,7 +90,7 @@ RELEVANT_PARAMS = [
 st.title('Brolga Water Treatment System - Point Leo Trial')
 
 # Define column layout
-col1, col2 = st.columns([2, 1])
+col1, col2 = st.columns([1.5, 1])
 
 # First column with main project description, with added padding for height alignment
 with col1:
@@ -211,7 +211,7 @@ st.sidebar.warning('Note: Values below detection limits are shown as the detecti
 with tab1:
     st.header('Influent Water Analysis')
     st.markdown(f"""
-    Analyzing raw pond water characteristics for Week {week_num}.  
+    Analysing raw pond water characteristics for Week {week_num}.  
     The data represents untreated water entering the Brolga system.
     """)
     
@@ -268,7 +268,6 @@ with tab2:
     
     st.dataframe(
         df_display[display_cols].set_index('Details'),
-        height=400
     )
 
 with tab3:
