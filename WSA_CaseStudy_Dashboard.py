@@ -94,25 +94,19 @@ col1, col2 = st.columns([2, 1])
 
 # First column with main project description
 with col1:
-    st.text_area(
-        "Project Description",
+    st.info(
+        "**Project Description**\n\n"
         "The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. "
-        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.",
-        height=150,
-        disabled=True,
-        label_visibility="collapsed"
+        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards."
     )
 
 # Second column with key project details
 with col2:
-    st.text_area(
-        "Key Details",
-        "Trial Location: Point Leo Farm, Frankston-Flinders Road\n"
-        "Source Water: Farm Pond\n"
-        "Treatment Goal: Potable Water Quality",
-        height=150,
-        disabled=True,
-        label_visibility="collapsed"
+    st.info(
+        "**Key Details**\n\n"
+        "- **Trial Location**: Point Leo Farm, Frankston-Flinders Road\n"
+        "- **Source Water**: Farm Pond\n"
+        "- **Treatment Goal**: Potable Water Quality"
     )
 
 # System Overview
@@ -297,36 +291,27 @@ col1, col2, col3 = st.columns(3)
 
 # First column for Pathogen Removal details
 with col1:
-    st.text_area(
-        "Pathogen Removal",
-        "✓ >7 log bacteria removal\n"
-        "✓ >6.5 log virus removal\n"
-        "✓ >7 log protozoa removal",
-        height=150,
-        disabled=True,
-        label_visibility="collapsed"
+    st.info(
+        "**Pathogen Removal**\n"
+        "- ✓ **>7 log bacteria removal**\n"
+        "- ✓ **>6.5 log virus removal**\n"
+        "- ✓ **>7 log protozoa removal**"
     )
 
 # Second column for Physical Treatment details
 with col2:
-    st.text_area(
-        "Physical Treatment",
-        "✓ Turbidity < 0.1 NTU\n"
-        "✓ Color reduction to < 15 HU\n"
-        "✓ TDS reduction to spec",
-        height=150,
-        disabled=True,
-        label_visibility="collapsed"
+    st.info(
+        "**Physical Treatment**\n"
+        "- ✓ **Turbidity < 0.1 NTU**\n"
+        "- ✓ **Color reduction to < 15 HU**\n"
+        "- ✓ **TDS reduction to spec**"
     )
 
 # Third column for Chemical Treatment details
 with col3:
-    st.text_area(
-        "Chemical Treatment",
-        "✓ Iron/Manganese removal\n"
-        "✓ pH correction\n"
-        "✓ Organic carbon reduction",
-        height=150,
-        disabled=True,
-        label_visibility="collapsed"
+    st.info(
+        "**Chemical Treatment**\n"
+        "- ✓ **Iron/Manganese removal**\n"
+        "- ✓ **pH correction**\n"
+        "- ✓ **Organic carbon reduction**"
     )
