@@ -89,24 +89,31 @@ RELEVANT_PARAMS = [
 # Project Overview Section
 st.title('Brolga Water Treatment System - Point Leo Trial')
 
+# Define column layout
 col1, col2 = st.columns([2, 1])
 
+# First column with main project description
 with col1:
-    st.markdown("""
-        <div class="info-box">
-        <p class="medium-font">The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. 
-        This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    st.text_area(
+        "Project Description",
+        "The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. "
+        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.",
+        height=150,
+        disabled=True,
+        label_visibility="collapsed"
+    )
 
+# Second column with key project details
 with col2:
-    st.markdown("""
-        <div class="info-box">
-        <p><strong>Trial Location:</strong> Point Leo Farm, Frankston-Flinders Road</p>
-        <p><strong>Source Water:</strong> Farm Pond</p>
-        <p><strong>Treatment Goal:</strong> Potable Water Quality</p>
-        </div>
-        """, unsafe_allow_html=True)
+    st.text_area(
+        "Key Details",
+        "Trial Location: Point Leo Farm, Frankston-Flinders Road\n"
+        "Source Water: Farm Pond\n"
+        "Treatment Goal: Potable Water Quality",
+        height=150,
+        disabled=True,
+        label_visibility="collapsed"
+    )
 
 # System Overview
 st.header('System Overview')
@@ -282,35 +289,44 @@ with tab3:
     st.plotly_chart(fig, use_container_width=True)
 
 # System Performance Metrics
+# Header for the section
 st.header('Treatment System Performance')
+
+# Define column layout
 col1, col2, col3 = st.columns(3)
 
+# First column for Pathogen Removal details
 with col1:
-    st.markdown("""
-        <div class="info-box">
-        <h3>Pathogen Removal</h3>
-        <p>✓ >7 log bacteria removal</p>
-        <p>✓ >6.5 log virus removal</p>
-        <p>✓ >7 log protozoa removal</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.text_area(
+        "Pathogen Removal",
+        "✓ >7 log bacteria removal\n"
+        "✓ >6.5 log virus removal\n"
+        "✓ >7 log protozoa removal",
+        height=150,
+        disabled=True,
+        label_visibility="collapsed"
+    )
 
+# Second column for Physical Treatment details
 with col2:
-    st.markdown("""
-        <div class="info-box">
-        <h3>Physical Treatment</h3>
-        <p>✓ Turbidity < 0.1 NTU</p>
-        <p>✓ Color reduction to < 15 HU</p>
-        <p>✓ TDS reduction to spec</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.text_area(
+        "Physical Treatment",
+        "✓ Turbidity < 0.1 NTU\n"
+        "✓ Color reduction to < 15 HU\n"
+        "✓ TDS reduction to spec",
+        height=150,
+        disabled=True,
+        label_visibility="collapsed"
+    )
 
+# Third column for Chemical Treatment details
 with col3:
-    st.markdown("""
-        <div class="info-box">
-        <h3>Chemical Treatment</h3>
-        <p>✓ Iron/Manganese removal</p>
-        <p>✓ pH correction</p>
-        <p>✓ Organic carbon reduction</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.text_area(
+        "Chemical Treatment",
+        "✓ Iron/Manganese removal\n"
+        "✓ pH correction\n"
+        "✓ Organic carbon reduction",
+        height=150,
+        disabled=True,
+        label_visibility="collapsed"
+    )
