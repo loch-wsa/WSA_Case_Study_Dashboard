@@ -292,26 +292,29 @@ col1, col2, col3 = st.columns(3)
 # First column for Pathogen Removal details
 with col1:
     st.info(
-        "### Pathogen Removal\n"
-        "   **✓ >7 log bacteria removal**  "
-        "   **✓ >6.5 log virus removal**  "
-        "   **✓ >7 log protozoa removal**"
+        "### Pathogen Removal
+        ** ✓ >7 log bacteria removal**  
+        ** ✓ >6.5 log virus removal**  
+        ** ✓ >7 log protozoa removal**  
+        "
     )
 
 # Second column for Physical Treatment details
 with col2:
     st.info(
-        "### Physical Treatment\n"
-        "<space><space> ** ✓ Turbidity < 0.1 NTU** "
-        "<space><space> ** ✓ Color reduction to < 15 HU**  "
-        "<space><space> ** ✓ TDS reduction to spec**"
+        "### Physical Treatment  
+        ** ✓ Turbidity < 0.1 NTU**  
+        ** ✓ Color reduction to < 15 HU**  
+        ** ✓ TDS reduction to spec**  
+        "
     )
 
 # Third column for Chemical Treatment details
 with col3:
     st.info(
-        "### Chemical Treatment\n"
-        "   **✓ Iron/Manganese removal**\n"
-        "   **✓ pH correction**\n"
-        "   **✓ Organic carbon reduction**"
+        "### Chemical Treatment  
+        **✓ Iron/Manganese removal**  
+        **✓ pH correction**  
+        **✓ Organic carbon reduction**  
+        "
     )
