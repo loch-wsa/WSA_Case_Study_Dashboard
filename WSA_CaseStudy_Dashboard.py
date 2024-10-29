@@ -80,10 +80,21 @@ def process_data(value):
 # Load and process data with caching
 @st.cache_data(ttl=3600)
 def load_data():
-    influent_data = pd.read_csv('Point Leo Influent Water.csv')
-    treated_data = pd.read_csv('Point Leo Treated Water.csv')  # Added treated water data
-    influent_ranges = pd.read_csv('Brolga Influent Parameters.csv')
-    treated_ranges = pd.read_csv('Brolga Treated Parameters.csv')
+    # Load data with error handling
+    try:
+        influent_data = pd.read_csv('Point Leo Influent Water.csv')
+        treated_data = pd.read_csv('Point Leo Treated Water.csv')
+        influent_ranges = pd.read_csv('Brolga Influent Parameters.csv')
+        treated_ranges = pd.read_csv('Brolga Treated Parameters.csv')
+        
+        # Debug information
+        st.write("Debug - Column names:")
+        st.write("Influent data columns:", influent_data.columns.tolist())
+        st.write("Treated data columns:", treated_data.columns.tolist())
+        
+        # Check if we need to rename columns in treated data
+        if 'Product Water' in treated_data.columns and 'Influent Water' not in treated_data.columns:
+            treated_data = treated_data.rename(columns={'Product Water': 'Influent Water'})
 
     # Process both influent and treated data
     for df in [influent_data, treated_data]:
