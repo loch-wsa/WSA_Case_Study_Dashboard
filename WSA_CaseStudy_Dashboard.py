@@ -98,8 +98,9 @@ with col1:
     '''
         ### Project Description
         
-        The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application.  
-        This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.    
+        The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application.
+        This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.  
+          
     '''
     )
 
@@ -299,9 +300,9 @@ with col1:
     '''
         ### Pathogen Removal
         
-        **✓ >7 log bacteria removal**  
-        **✓ >6.5 log virus removal**  
-        **✓ >7 log protozoa removal**  
+        **✓** >7 log bacteria removal  
+        **✓** >6.5 log virus removal  
+        **✓** >7 log protozoa removal  
     '''
     )
 
@@ -311,9 +312,9 @@ with col2:
     '''
         ### Physical Treatment  
         
-        **✓ Turbidity < 0.1 NTU**  
-        **✓ Color reduction to < 15 HU**  
-        **✓ TDS reduction to spec**  
+        **✓** Turbidity < 0.1 NTU  
+        **✓** Color reduction to < 15 HU  
+        **✓** TDS reduction to spec  
     '''
     )
 
