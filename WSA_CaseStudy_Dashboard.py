@@ -11,7 +11,7 @@ st.set_page_config(
     page_icon="💧"
 )
 
-# Custom CSS - Updated for dark mode compatibility and enhanced boxes
+# Custom CSS - Updated for better dark mode contrast
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab-list"] {
@@ -23,7 +23,7 @@ st.markdown("""
         padding-bottom: 10px;
     }
     .stTabs [aria-selected="true"] {
-        background-color: var(--secondary-background-color);
+        background-color: #f0f2f6;
         border-radius: 5px 5px 0px 0px;
     }
     .big-font {
@@ -33,38 +33,52 @@ st.markdown("""
         font-size: 20px !important;
     }
     .info-box {
-        background-color: var(--secondary-background-color);
+        background-color: #f0f2f6;
         padding: 20px;
         border-radius: 10px;
         margin: 10px 0;
-        color: var(--text-color);
-        border: 1px solid var(--primary-color);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid rgba(49, 51, 63, 0.2);
     }
     .highlight {
         color: #FF4B4B;
         font-weight: bold;
     }
     .info-box p {
-        color: var(--text-color) !important;
         margin: 8px 0;
     }
     .info-box h3 {
-        color: var(--primary-color);
         margin-bottom: 12px;
     }
-    .parameter-table {
-        margin: 20px 0;
-        border: 1px solid var(--secondary-background-color);
+    [data-testid="stAppViewContainer"] {
+        background-color: white;
+        color: black;
     }
-    .parameter-table th {
-        background-color: var(--primary-color);
-        color: white;
-        padding: 8px;
+    [data-testid="stSidebar"] {
+        background-color: white;
+        color: black;
     }
-    .parameter-table td {
-        padding: 8px;
-        border: 1px solid var(--secondary-background-color);
+    @media (prefers-color-scheme: dark) {
+        [data-testid="stAppViewContainer"] {
+            background-color: #262730;
+            color: white;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #262730;
+            color: white;
+        }
+        .info-box {
+            background-color: #0e1117;
+            border: 1px solid rgba(250, 250, 250, 0.2);
+        }
+        .info-box p {
+            color: white;
+        }
+        .info-box h3 {
+            color: white;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: #0e1117;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -190,8 +204,15 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
     
     max_values = []
     for param in df_filtered['Influent Water']:
-        max_val = ranges_df[ranges_df['Influent Water'] == param]['Max'].values[0]
-        max_values.append(float(max_val) if max_val != 0 else 1.0)
+        range_row = ranges_df[ranges_df['Influent Water'] == param]
+        if len(range_row) > 0:
+            max_val = range_row['Max'].values[0]
+            max_values.append(float(max_val) if max_val != 0 else 1.0)
+        else:
+            # If no range data found, use the maximum value in the dataset
+            param_data = data_df[data_df['Influent Water'] == param]
+            max_val = max([float(param_data[col].max()) for col in param_data.columns if col.startswith('Week')])
+            max_values.append(max_val if max_val != 0 else 1.0)
     
     normalized_values = []
     for val, max_val in zip(values, max_values):
