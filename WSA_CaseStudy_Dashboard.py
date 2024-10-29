@@ -236,8 +236,7 @@ with tab1:
     display_cols = ['Details', 'Current Value', 'Range', 'Estimated', 'Notes']
     
     st.dataframe(
-        df_display[display_cols].set_index('Details'),
-        height=400
+        df_display[display_cols].set_index('Details')
     )
 
 with tab2:
