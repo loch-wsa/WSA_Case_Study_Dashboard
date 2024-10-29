@@ -1,0 +1,28 @@
+﻿Influent Water,Details,Min,Max
+ALKALINITY AS CACO3,Alkalinity - Total Alkalinity as CaCO3,0,112
+AS,MS Total Metals - Arsenic,0,0
+CO3 AS CACO3,Alkalinity - Carbonate Alkalinity as CaCO3,0,0
+COLIFORM (C),Colilert (2000) - Coliform,0,2199
+DOC,DOC (SFA) - Dissolved Organic Carbon,0,15
+E COLI(C),Colilert (2000) - E.coli,0,1114
+EC,EC - Electrical Conductivity @ 25C,0,703
+FE,MS Total Metals - Iron,0,2
+HCO3 AS CACO3,Alkalinity - Bicarbonate Alkalinity as CaCO3,0,72
+HG,MS Total Metals - Mercury,0,0
+MN,MS Total Metals - Manganese,0,1
+NA,OES Scan - Sodium,0,71
+OH AS CACO3,Alkalinity - Hydroxide Alkalinity as CaCO3,0,0
+PB,MS Total Metals - Lead,0,0
+PH,pH - pH,0,11
+PLATE COUNT 36 C,Plate Count - Plate Count 36°C,0,401
+SILICA,"React. Silica - Silica, reactive as SiO2",0,1
+SUS SOLIDS,SS at 104+/- 2°C - Suspended Solids,0,18
+TDS_180,TDS at 180°C +/- 5°C - Total Dissolved Solids,0,234
+TOC,TOC (SFA) - Total Organic Carbon,0,24
+TRUE COLOUR,ColourFilt - Colour (filt),0,39
+TURBIDITY,Turbidity - Turbidity,0,16
+UV TRANS,"UV Trans254 - UV Transmission at 254 nm, 1 cm path",0,163
+W-CHLORIDE(DA),Chloride - Chloride,0,195
+W-HARDNESS,Hardness,0,113
+W-NO3-N,NO3-N - Nitrate as N,0,1
+W-SO4-DA,SO4 DA - Sulphate,0,47
