@@ -80,8 +80,8 @@ def process_data(value):
 # Load and process data with caching
 @st.cache_data(ttl=3600)
 def load_data():
-    # Load data with error handling
     try:
+        # Load all data files
         influent_data = pd.read_csv('Point Leo Influent Water.csv')
         treated_data = pd.read_csv('Point Leo Treated Water.csv')
         influent_ranges = pd.read_csv('Brolga Influent Parameters.csv')
@@ -95,6 +95,18 @@ def load_data():
         # Check if we need to rename columns in treated data
         if 'Product Water' in treated_data.columns and 'Influent Water' not in treated_data.columns:
             treated_data = treated_data.rename(columns={'Product Water': 'Influent Water'})
+        
+        # Process numeric columns for both dataframes
+        for df in [influent_data, treated_data]:
+            for col in df.columns:
+                if col not in ['Influent Water', 'Details', 'Pond']:
+                    df[col] = df[col].apply(process_data)
+                    
+        return influent_data, treated_data, influent_ranges, treated_ranges
+        
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        raise e
 
     # Process both influent and treated data
     for df in [influent_data, treated_data]:
