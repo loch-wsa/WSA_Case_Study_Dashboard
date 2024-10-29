@@ -92,18 +92,18 @@ st.title('Brolga Water Treatment System - Point Leo Trial')
 # Define column layout
 col1, col2 = st.columns([2, 1])
 
-# First column with main project description
+# First column with main project description, with added padding for height alignment
 with col1:
     st.info(
-        "**Project Description**\n\n"
+        "### Project Description\n\n"
         "The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. "
-        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards."
+        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.\n"
     )
 
 # Second column with key project details
 with col2:
     st.info(
-        "**Key Details**\n\n"
+        "### Key Details\n\n"
         "- **Trial Location**: Point Leo Farm, Frankston-Flinders Road\n"
         "- **Source Water**: Farm Pond\n"
         "- **Treatment Goal**: Potable Water Quality"
@@ -292,7 +292,7 @@ col1, col2, col3 = st.columns(3)
 # First column for Pathogen Removal details
 with col1:
     st.info(
-        "**Pathogen Removal**\n"
+        "### Pathogen Removal\n"
         "- ✓ **>7 log bacteria removal**\n"
         "- ✓ **>6.5 log virus removal**\n"
         "- ✓ **>7 log protozoa removal**"
@@ -301,7 +301,7 @@ with col1:
 # Second column for Physical Treatment details
 with col2:
     st.info(
-        "**Physical Treatment**\n"
+        "### Physical Treatment\n"
         "- ✓ **Turbidity < 0.1 NTU**\n"
         "- ✓ **Color reduction to < 15 HU**\n"
         "- ✓ **TDS reduction to spec**"
@@ -310,7 +310,7 @@ with col2:
 # Third column for Chemical Treatment details
 with col3:
     st.info(
-        "**Chemical Treatment**\n"
+        "### Chemical Treatment\n"
         "- ✓ **Iron/Manganese removal**\n"
         "- ✓ **pH correction**\n"
         "- ✓ **Organic carbon reduction**"
