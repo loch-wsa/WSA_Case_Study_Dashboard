@@ -97,7 +97,7 @@ with col1:
     st.info(
         "### Project Description\n\n"
         "The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. "
-        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.\n"
+        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.\n\n\n"
     )
 
 # Second column with key project details
@@ -106,7 +106,7 @@ with col2:
         "### Key Details\n\n"
         "- **Trial Location**: Point Leo Farm, Frankston-Flinders Road\n"
         "- **Source Water**: Farm Pond\n"
-        "- **Treatment Goal**: Potable Water Quality"
+        "- **Treatment Goal**: Potable Water Quality\n"
     )
 
 # System Overview
@@ -311,7 +311,7 @@ with col2:
 with col3:
     st.info(
         "### Chemical Treatment\n"
-        "- ✓ **Iron/Manganese removal**\n"
-        "- ✓ **pH correction**\n"
-        "- ✓ **Organic carbon reduction**"
+        "- **✓ Iron/Manganese removal**\n"
+        "- **✓ pH correction**\n"
+        "- **✓ Organic carbon reduction**"
     )
