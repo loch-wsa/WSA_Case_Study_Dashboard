@@ -95,18 +95,24 @@ col1, col2 = st.columns([1.5, 1])
 # First column with main project description, with added padding for height alignment
 with col1:
     st.info(
-        "### Project Description\n\n"
-        "The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. "
-        "This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.\n\n\n"
+    '''
+        ### Project Description
+        
+        The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application.  
+        This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.    
+    '''
     )
 
 # Second column with key project details
 with col2:
     st.info(
-        "### Key Details\n\n"
-        "- **Trial Location**: Point Leo Farm, Frankston-Flinders Road\n"
-        "- **Source Water**: Farm Pond\n"
-        "- **Treatment Goal**: Potable Water Quality\n"
+    '''
+        ### Key Details  
+        
+        - **Trial Location**: Point Leo Farm, Frankston-Flinders Road  
+        - **Source Water**: Farm Pond  
+        - **Treatment Goal**: Potable Water Quality  
+    '''
     )
 
 # System Overview
@@ -290,12 +296,13 @@ col1, col2, col3 = st.columns(3)
 # First column for Pathogen Removal details
 with col1:
     st.info(
-        '''
+    '''
         ### Pathogen Removal
+        
         **✓ >7 log bacteria removal**  
         **✓ >6.5 log virus removal**  
         **✓ >7 log protozoa removal**  
-        '''
+    '''
     )
 
 # Second column for Physical Treatment details
@@ -303,6 +310,7 @@ with col2:
     st.info(
     '''
         ### Physical Treatment  
+        
         **✓ Turbidity < 0.1 NTU**  
         **✓ Color reduction to < 15 HU**  
         **✓ TDS reduction to spec**  
@@ -314,8 +322,9 @@ with col3:
     st.info(
     '''
         ### Chemical Treatment  
-        **✓ Iron/Manganese removal**  
-        **✓ pH correction**  
-        **✓ Organic carbon reduction**  
+        
+        **✓** Iron/Manganese removal  
+        **✓** pH correction  
+        **✓** Organic carbon reduction  
     '''
     )
