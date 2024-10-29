@@ -1,28 +1,28 @@
-﻿Influent Water,Details,Min,Max
-ALKALINITY AS CACO3,Alkalinity - Total Alkalinity as CaCO3,0,28
-AS,MS Total Metals - Arsenic,0,0
-CO3 AS CACO3,Alkalinity - Carbonate Alkalinity as CaCO3,0,0
-COLIFORM (C),Colilert (2000) - Coliform,0,549.75
-DOC,DOC (SFA) - Dissolved Organic Carbon,0,3.75
-E COLI(C),Colilert (2000) - E.coli,0,278.5
-EC,EC - Electrical Conductivity @ 25C,0,175.75
-FE,MS Total Metals - Iron,0,0.5
-HCO3 AS CACO3,Alkalinity - Bicarbonate Alkalinity as CaCO3,0,18
-HG,MS Total Metals - Mercury,0,0
-MN,MS Total Metals - Manganese,0,0.25
-NA,OES Scan - Sodium,0,17.75
-OH AS CACO3,Alkalinity - Hydroxide Alkalinity as CaCO3,0,0
-PB,MS Total Metals - Lead,0,0
-PH,pH - pH,0,2.75
-PLATE COUNT 36 C,Plate Count - Plate Count 36°C,0,100.25
-SILICA,"React. Silica - Silica, reactive as SiO2",0,0.25
-SUS SOLIDS,SS at 104+/- 2°C - Suspended Solids,0,4.5
-TDS_180,TDS at 180°C +/- 5°C - Total Dissolved Solids,0,58.5
-TOC,TOC (SFA) - Total Organic Carbon,0,6
-TRUE COLOUR,ColourFilt - Colour (filt),0,9.75
-TURBIDITY,Turbidity - Turbidity,0,4
-UV TRANS,"UV Trans254 - UV Transmission at 254 nm, 1 cm path",0,40.75
-W-CHLORIDE(DA),Chloride - Chloride,0,48.75
-W-HARDNESS,Hardness,0,28.25
-W-NO3-N,NO3-N - Nitrate as N,0,0.25
-W-SO4-DA,SO4 DA - Sulphate,0,11.75
+﻿Influent Water,Details,Min,Max,Estimated,Notes
+ALKALINITY AS CACO3,Alkalinity - Total Alkalinity as CaCO3,20,200,Yes,Based on typical drinking water range
+AS,MS Total Metals - Arsenic,0,0.01,No,ADWG health guideline
+CO3 AS CACO3,Alkalinity - Carbonate Alkalinity as CaCO3,0,120,Yes,Estimated based on typical treated water
+COLIFORM (C),Colilert (2000) - Coliform,0,0,No,ADWG requirement
+DOC,DOC (SFA) - Dissolved Organic Carbon,0,5,Yes,Estimated for treated water
+E COLI(C),Colilert (2000) - E.coli,0,0,No,ADWG requirement
+EC,EC - Electrical Conductivity @ 25C,0,1000,Yes,System sensor range reduced for treated water
+FE,MS Total Metals - Iron,0,0.3,No,ADWG aesthetic guideline
+HCO3 AS CACO3,Alkalinity - Bicarbonate Alkalinity as CaCO3,20,200,Yes,Estimated based on typical treated water
+HG,MS Total Metals - Mercury,0,0.001,No,ADWG health guideline
+MN,MS Total Metals - Manganese,0,0.1,No,ADWG aesthetic guideline
+NA,OES Scan - Sodium,0,180,No,ADWG aesthetic guideline
+OH AS CACO3,Alkalinity - Hydroxide Alkalinity as CaCO3,0,50,Yes,Estimated based on typical treated water
+PB,MS Total Metals - Lead,0,0.01,No,ADWG health guideline
+PH,pH - pH,6.5,8.5,No,ADWG guideline
+PLATE COUNT 36 C,Plate Count - Plate Count 36°C,0,100,Yes,Estimated based on typical treated water
+SILICA,"React. Silica - Silica, reactive as SiO2",0,80,No,ADWG guideline
+SUS SOLIDS,SS at 104+/- 2°C - Suspended Solids,0,5,Yes,Based on ultrafiltration capability
+TDS_180,TDS at 180°C +/- 5°C - Total Dissolved Solids,0,600,No,ADWG aesthetic guideline
+TOC,TOC (SFA) - Total Organic Carbon,0,8,Yes,Estimated for treated water
+TRUE COLOUR,ColourFilt - Colour (filt),0,15,No,ADWG aesthetic guideline (Hazen units)
+TURBIDITY,Turbidity - Turbidity,0,4,No,From system sensor TRB102 range
+UV TRANS,"UV Trans254 - UV Transmission at 254 nm, 1 cm path",85,100,Yes,Estimated for effective UV treatment
+W-CHLORIDE(DA),Chloride - Chloride,0,250,No,ADWG aesthetic guideline
+W-HARDNESS,Hardness,0,200,No,ADWG aesthetic guideline
+W-NO3-N,NO3-N - Nitrate as N,0,11.3,No,ADWG health guideline (50 mg/L as NO3)
+W-SO4-DA,SO4 DA - Sulphate,0,250,No,ADWG aesthetic guideline

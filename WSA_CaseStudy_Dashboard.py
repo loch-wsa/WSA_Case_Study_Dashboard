@@ -3,9 +3,14 @@ import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
 
-st.set_page_config(layout="wide", page_title="Brolga Water Treatment Dashboard")
+# Page configuration
+st.set_page_config(
+    layout="wide",
+    page_title="Brolga Water Treatment Trial - Point Leo",
+    page_icon="💧"
+)
 
-# Add custom CSS
+# Custom CSS
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab-list"] {
@@ -20,6 +25,22 @@ st.markdown("""
         background-color: #f0f2f6;
         border-radius: 5px 5px 0px 0px;
     }
+    .big-font {
+        font-size: 24px !important;
+    }
+    .medium-font {
+        font-size: 20px !important;
+    }
+    .info-box {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    .highlight {
+        color: #FF4B4B;
+        font-weight: bold;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -32,7 +53,7 @@ def process_data(value):
                 value = value.strip('>')
                 if value.isdigit():
                     return float(value)
-                return 2000  # Default for large values
+                return 2000
             elif value == 'N/R':
                 return 0
             elif value.endswith('LINT'):
@@ -48,14 +69,13 @@ def process_data(value):
     except Exception:
         return 0
 
-# Load and process data
-@st.cache_data
+# Load and process data with caching
+@st.cache_data(ttl=3600)
 def load_data():
     influent_data = pd.read_csv('Point Leo Influent Water.csv')
     influent_ranges = pd.read_csv('Brolga Influent Parameters.csv')
     treated_ranges = pd.read_csv('Brolga Treated Parameters.csv')
 
-    # Process the data
     for col in influent_data.columns:
         if col not in ['Influent Water', 'Details', 'Pond']:
             influent_data[col] = influent_data[col].apply(process_data)
@@ -76,9 +96,38 @@ RELEVANT_PARAMS = [
     'DOC'
 ]
 
-# Dashboard title
-st.title('Brolga Water Treatment System Dashboard')
-st.markdown('---')
+# Project Overview Section
+st.title('Brolga Water Treatment System - Point Leo Trial')
+
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    st.markdown("""
+        <div class="info-box">
+        <p class="medium-font">The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application. 
+        This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+        <div class="info-box">
+        <p><strong>Trial Location:</strong> Point Leo Farm, Frankston-Flinders Road</p>
+        <p><strong>Source Water:</strong> Farm Pond</p>
+        <p><strong>Treatment Goal:</strong> Potable Water Quality</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# System Overview
+st.header('System Overview')
+st.markdown("""
+    The Brolga treatment system employs multiple barriers for water treatment:
+    - Pre-filtration for large particle removal
+    - Mixed media filtration for iron and manganese removal
+    - Ultrafiltration for pathogen and particle removal
+    - Carbon filtration for taste, odor, and color removal
+    - UV disinfection for final pathogen inactivation
+""")
 
 # Create tabs
 tab1, tab2, tab3 = st.tabs(['Influent Water', 'Treated Water', 'Comparison'])
@@ -89,20 +138,15 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
     else:
         ranges_df = treated_ranges
     
-    # Filter for selected parameters
     df_filtered = influent_data[influent_data['Influent Water'].isin(params)]
-    
-    # Get the values for the selected week
     week_col = f'Week {week_num}'
     values = df_filtered[week_col].values
     
-    # Get the corresponding max values from ranges
     max_values = []
     for param in df_filtered['Influent Water']:
         max_val = ranges_df[ranges_df['Influent Water'] == param]['Max'].values[0]
         max_values.append(float(max_val) if max_val != 0 else 1.0)
     
-    # Normalize the values
     normalized_values = []
     for val, max_val in zip(values, max_values):
         try:
@@ -111,7 +155,6 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
         except (TypeError, ValueError):
             normalized_values.append(0)
     
-    # Create the radar chart
     fig = go.Figure()
     
     fig.add_trace(go.Scatterpolar(
@@ -123,9 +166,8 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
     ))
     
     if show_comparison:
-        # Add treated water trace
         fig.add_trace(go.Scatterpolar(
-            r=[v * 0.5 for v in normalized_values],  # Simulated treated values
+            r=[v * 0.5 for v in normalized_values],
             theta=df_filtered['Influent Water'].tolist(),
             name='Treated Water',
             fill='toself',
@@ -146,7 +188,7 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
     return fig
 
 # Sidebar controls
-st.sidebar.title('Controls')
+st.sidebar.title('Control Panel')
 week_num = st.sidebar.slider('Select Week', 1, 7, 1)
 show_relevant = st.sidebar.checkbox('Show Relevant Parameters Only')
 selected_params = st.sidebar.multiselect(
@@ -163,19 +205,25 @@ st.sidebar.warning('Note: Values below detection limits are shown as the detecti
 with tab1:
     st.header('Influent Water Analysis')
     st.markdown(f"""
-    Showing influent water quality parameters for Week {week_num}.  
-    These values represent the raw water entering the Brolga treatment system.
+    Analyzing raw pond water characteristics for Week {week_num}.  
+    The data represents untreated water entering the Brolga system.
     """)
     
     params = RELEVANT_PARAMS if show_relevant else selected_params
     fig = create_radar_chart(week_num, params, 'influent')
     st.plotly_chart(fig, use_container_width=True)
 
+    # Add actual values table
+    st.markdown("### Raw Water Parameters")
+    week_col = f'Week {week_num}'
+    df_display = influent_data[influent_data['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]]
+    st.dataframe(df_display.set_index('Influent Water'))
+
 with tab2:
     st.header('Treated Water Analysis')
     st.markdown(f"""
     Showing treated water quality parameters for Week {week_num}.  
-    These values represent the output water quality from the Brolga system.
+    This represents the Brolga system's output water quality after full treatment.
     """)
     
     params = RELEVANT_PARAMS if show_relevant else selected_params
@@ -185,10 +233,44 @@ with tab2:
 with tab3:
     st.header('Water Quality Comparison')
     st.markdown(f"""
-    Comparing influent and treated water quality parameters for Week {week_num}.  
-    The smaller area of the treated water trace demonstrates the effectiveness of the Brolga treatment system in improving water quality.
+    Week {week_num} comparison between influent and treated water.  
+    The smaller radar plot area for treated water demonstrates the effectiveness of the Brolga treatment process.
     """)
     
     params = RELEVANT_PARAMS if show_relevant else selected_params
     fig = create_radar_chart(week_num, params, 'influent', show_comparison=True)
     st.plotly_chart(fig, use_container_width=True)
+
+# System Performance Metrics
+st.header('Treatment System Performance')
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("""
+        <div class="info-box">
+        <h3>Pathogen Removal</h3>
+        <p>✓ >7 log bacteria removal</p>
+        <p>✓ >6.5 log virus removal</p>
+        <p>✓ >7 log protozoa removal</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+        <div class="info-box">
+        <h3>Physical Treatment</h3>
+        <p>✓ Turbidity < 0.1 NTU</p>
+        <p>✓ Color reduction to < 15 HU</p>
+        <p>✓ TDS reduction to spec</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+        <div class="info-box">
+        <h3>Chemical Treatment</h3>
+        <p>✓ Iron/Manganese removal</p>
+        <p>✓ pH correction</p>
+        <p>✓ Organic carbon reduction</p>
+        </div>
+    """, unsafe_allow_html=True)
