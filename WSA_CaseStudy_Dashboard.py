@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
+from functools import lru_cache
 
 # Page configuration
 st.set_page_config(
@@ -10,7 +11,7 @@ st.set_page_config(
     page_icon="💧"
 )
 
-# Custom CSS
+# Custom CSS - Updated for dark mode compatibility
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab-list"] {
@@ -22,7 +23,7 @@ st.markdown("""
         padding-bottom: 10px;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #f0f2f6;
+        background-color: var(--secondary-background-color);
         border-radius: 5px 5px 0px 0px;
     }
     .big-font {
@@ -32,19 +33,26 @@ st.markdown("""
         font-size: 20px !important;
     }
     .info-box {
-        background-color: #f0f2f6;
+        background-color: var(--secondary-background-color);
         padding: 20px;
         border-radius: 10px;
         margin: 10px 0;
+        color: var(--text-color);
     }
     .highlight {
         color: #FF4B4B;
         font-weight: bold;
     }
+    /* Dark mode text color fix */
+    .info-box p {
+        color: var(--text-color) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
+@lru_cache(maxsize=None)
 def process_data(value):
+    """Process data values with caching for better performance"""
     try:
         if isinstance(value, str):
             if value.startswith('<'):
@@ -73,16 +81,19 @@ def process_data(value):
 @st.cache_data(ttl=3600)
 def load_data():
     influent_data = pd.read_csv('Point Leo Influent Water.csv')
+    treated_data = pd.read_csv('Point Leo Treated Water.csv')  # Added treated water data
     influent_ranges = pd.read_csv('Brolga Influent Parameters.csv')
     treated_ranges = pd.read_csv('Brolga Treated Parameters.csv')
 
-    for col in influent_data.columns:
-        if col not in ['Influent Water', 'Details', 'Pond']:
-            influent_data[col] = influent_data[col].apply(process_data)
+    # Process both influent and treated data
+    for df in [influent_data, treated_data]:
+        for col in df.columns:
+            if col not in ['Influent Water', 'Details', 'Pond']:
+                df[col] = df[col].apply(process_data)
 
-    return influent_data, influent_ranges, treated_ranges
+    return influent_data, treated_data, influent_ranges, treated_ranges
 
-influent_data, influent_ranges, treated_ranges = load_data()
+influent_data, treated_data, influent_ranges, treated_ranges = load_data()
 
 # Define relevant parameters
 RELEVANT_PARAMS = [
@@ -133,12 +144,10 @@ st.markdown("""
 tab1, tab2, tab3 = st.tabs(['Influent Water', 'Treated Water', 'Comparison'])
 
 def create_radar_chart(week_num, params, data_type='influent', show_comparison=False):
-    if data_type == 'influent':
-        ranges_df = influent_ranges
-    else:
-        ranges_df = treated_ranges
+    ranges_df = treated_ranges if data_type == 'treated' else influent_ranges
+    data_df = treated_data if data_type == 'treated' else influent_data
     
-    df_filtered = influent_data[influent_data['Influent Water'].isin(params)]
+    df_filtered = data_df[data_df['Influent Water'].isin(params)]
     week_col = f'Week {week_num}'
     values = df_filtered[week_col].values
     
@@ -157,17 +166,29 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
     
     fig = go.Figure()
     
+    # Add main trace
     fig.add_trace(go.Scatterpolar(
         r=normalized_values,
         theta=df_filtered['Influent Water'].tolist(),
-        name='Influent Water',
+        name='Influent Water' if data_type == 'influent' else 'Treated Water',
         fill='toself',
-        line=dict(color='#1f77b4')
+        line=dict(color='#1f77b4' if data_type == 'influent' else '#2ca02c')
     ))
     
     if show_comparison:
+        # Get treated water values for comparison
+        treated_filtered = treated_data[treated_data['Influent Water'].isin(params)]
+        treated_values = treated_filtered[week_col].values
+        treated_normalized = []
+        for val, max_val in zip(treated_values, max_values):
+            try:
+                norm_val = float(val) / float(max_val) if max_val != 0 else 0
+                treated_normalized.append(norm_val)
+            except (TypeError, ValueError):
+                treated_normalized.append(0)
+        
         fig.add_trace(go.Scatterpolar(
-            r=[v * 0.5 for v in normalized_values],
+            r=treated_normalized,
             theta=df_filtered['Influent Water'].tolist(),
             name='Treated Water',
             fill='toself',
@@ -190,12 +211,10 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
 # Sidebar controls
 st.sidebar.title('Control Panel')
 week_num = st.sidebar.slider('Select Week', 1, 7, 1)
-show_relevant = st.sidebar.checkbox('Show Relevant Parameters Only')
-selected_params = st.sidebar.multiselect(
-    'Select Parameters',
-    options=influent_data['Influent Water'].tolist(),
-    default=RELEVANT_PARAMS
-)
+show_all = st.sidebar.checkbox('Show All Parameters', value=False)
+
+# Get parameters based on selection
+params = influent_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
 
 # Warning message
 st.sidebar.markdown('---')
@@ -209,7 +228,6 @@ with tab1:
     The data represents untreated water entering the Brolga system.
     """)
     
-    params = RELEVANT_PARAMS if show_relevant else selected_params
     fig = create_radar_chart(week_num, params, 'influent')
     st.plotly_chart(fig, use_container_width=True)
 
@@ -226,9 +244,14 @@ with tab2:
     This represents the Brolga system's output water quality after full treatment.
     """)
     
-    params = RELEVANT_PARAMS if show_relevant else selected_params
     fig = create_radar_chart(week_num, params, 'treated')
     st.plotly_chart(fig, use_container_width=True)
+
+    # Add treated water values table
+    st.markdown("### Treated Water Parameters")
+    week_col = f'Week {week_num}'
+    df_display = treated_data[treated_data['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]]
+    st.dataframe(df_display.set_index('Influent Water'))
 
 with tab3:
     st.header('Water Quality Comparison')
@@ -237,7 +260,6 @@ with tab3:
     The smaller radar plot area for treated water demonstrates the effectiveness of the Brolga treatment process.
     """)
     
-    params = RELEVANT_PARAMS if show_relevant else selected_params
     fig = create_radar_chart(week_num, params, 'influent', show_comparison=True)
     st.plotly_chart(fig, use_container_width=True)
 
