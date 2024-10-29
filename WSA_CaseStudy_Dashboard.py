@@ -11,7 +11,7 @@ st.set_page_config(
     page_icon="💧"
 )
 
-# Custom CSS - Updated for dark mode compatibility
+# Custom CSS - Updated for dark mode compatibility and enhanced boxes
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab-list"] {
@@ -38,14 +38,33 @@ st.markdown("""
         border-radius: 10px;
         margin: 10px 0;
         color: var(--text-color);
+        border: 1px solid var(--primary-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .highlight {
         color: #FF4B4B;
         font-weight: bold;
     }
-    /* Dark mode text color fix */
     .info-box p {
         color: var(--text-color) !important;
+        margin: 8px 0;
+    }
+    .info-box h3 {
+        color: var(--primary-color);
+        margin-bottom: 12px;
+    }
+    .parameter-table {
+        margin: 20px 0;
+        border: 1px solid var(--secondary-background-color);
+    }
+    .parameter-table th {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 8px;
+    }
+    .parameter-table td {
+        padding: 8px;
+        border: 1px solid var(--secondary-background-color);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -86,11 +105,6 @@ def load_data():
         treated_data = pd.read_csv('Point Leo Treated Water.csv')
         influent_ranges = pd.read_csv('Brolga Influent Parameters.csv')
         treated_ranges = pd.read_csv('Brolga Treated Parameters.csv')
-        
-        # Debug information
-        st.write("Debug - Column names:")
-        st.write("Influent data columns:", influent_data.columns.tolist())
-        st.write("Treated data columns:", treated_data.columns.tolist())
         
         # Check if we need to rename columns in treated data
         if 'Product Water' in treated_data.columns and 'Influent Water' not in treated_data.columns:
@@ -254,11 +268,27 @@ with tab1:
     fig = create_radar_chart(week_num, params, 'influent')
     st.plotly_chart(fig, use_container_width=True)
 
-    # Add actual values table
+    # Add actual values and parameter ranges table
     st.markdown("### Raw Water Parameters")
     week_col = f'Week {week_num}'
-    df_display = influent_data[influent_data['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]]
-    st.dataframe(df_display.set_index('Influent Water'))
+    
+    # Create combined display dataframe
+    df_display = pd.merge(
+        influent_data[influent_data['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]],
+        influent_ranges[['Influent Water', 'Min', 'Max', 'Estimated', 'Notes']],
+        on='Influent Water',
+        how='left'
+    )
+    
+    # Format the display
+    df_display = df_display.rename(columns={week_col: 'Current Value'})
+    df_display['Range'] = df_display.apply(lambda x: f"{x['Min']} - {x['Max']}", axis=1)
+    display_cols = ['Details', 'Current Value', 'Range', 'Estimated', 'Notes']
+    
+    st.dataframe(
+        df_display[display_cols].set_index('Details'),
+        height=400
+    )
 
 with tab2:
     st.header('Treated Water Analysis')
@@ -270,11 +300,27 @@ with tab2:
     fig = create_radar_chart(week_num, params, 'treated')
     st.plotly_chart(fig, use_container_width=True)
 
-    # Add treated water values table
+    # Add treated water values and parameter ranges table
     st.markdown("### Treated Water Parameters")
     week_col = f'Week {week_num}'
-    df_display = treated_data[treated_data['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]]
-    st.dataframe(df_display.set_index('Influent Water'))
+    
+    # Create combined display dataframe
+    df_display = pd.merge(
+        treated_data[treated_data['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]],
+        treated_ranges[['Influent Water', 'Min', 'Max', 'Estimated', 'Notes']],
+        on='Influent Water',
+        how='left'
+    )
+    
+    # Format the display
+    df_display = df_display.rename(columns={week_col: 'Current Value'})
+    df_display['Range'] = df_display.apply(lambda x: f"{x['Min']} - {x['Max']}", axis=1)
+    display_cols = ['Details', 'Current Value', 'Range', 'Estimated', 'Notes']
+    
+    st.dataframe(
+        df_display[display_cols].set_index('Details'),
+        height=400
+    )
 
 with tab3:
     st.header('Water Quality Comparison')
