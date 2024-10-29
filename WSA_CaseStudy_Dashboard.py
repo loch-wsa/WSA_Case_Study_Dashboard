@@ -294,9 +294,9 @@ with col1:
     st.info(
         '''
         ### Pathogen Removal
-        ** ✓ >7 log bacteria removal**  
-        ** ✓ >6.5 log virus removal**  
-        ** ✓ >7 log protozoa removal**  
+        **✓ >7 log bacteria removal**  
+        **✓ >6.5 log virus removal**  
+        **✓ >7 log protozoa removal**  
         '''
     )
 
@@ -305,9 +305,9 @@ with col2:
     st.info(
     '''
         ### Physical Treatment  
-        ** ✓ Turbidity < 0.1 NTU**  
-        ** ✓ Color reduction to < 15 HU**  
-        ** ✓ TDS reduction to spec**  
+        **✓ Turbidity < 0.1 NTU**  
+        **✓ Color reduction to < 15 HU**  
+        **✓ TDS reduction to spec**  
     '''
     )
 
