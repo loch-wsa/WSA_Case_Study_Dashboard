@@ -1,17 +1,10 @@
+import plotly.graph_objects as go
+import pandas as pd
+
 def create_radar_chart(week_num, params, influent_data, treated_data, influent_ranges, treated_ranges, data_type='influent', show_comparison=False):
     """
     Create an enhanced radar chart with parameter ranges, hover information, and zoom functionality
     while maintaining existing normalization and comparison capabilities.
-    
-    Args:
-        week_num (int): Selected week number
-        params (list): List of parameters to display
-        influent_data (pd.DataFrame): Influent water data
-        treated_data (pd.DataFrame): Treated water data
-        influent_ranges (pd.DataFrame): Range values for influent parameters
-        treated_ranges (pd.DataFrame): Range values for treated parameters
-        data_type (str): Type of chart ('influent' or 'treated')
-        show_comparison (bool): Whether to show comparison between influent and treated water
     """
     # Select appropriate dataframes based on data type
     ranges_df = treated_ranges if data_type == 'treated' else influent_ranges
@@ -55,10 +48,6 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
     
     # Create figure
     fig = go.Figure()
-    
-    # Add range area (if range data exists)
-    normalized_min_values = [min_val / max_val if max_val != 0 else 0 
-                           for min_val, max_val in zip(min_values, max_values)]
     
     # Add range area traces
     fig.add_trace(go.Scatterpolar(
@@ -171,3 +160,22 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
     )
     
     return fig
+
+def create_parameter_table(week_num, params, data_df, ranges_df):
+    """Create a formatted parameter table for display"""
+    week_col = f'Week {week_num}'
+    
+    # Create combined display dataframe
+    df_display = pd.merge(
+        data_df[data_df['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]],
+        ranges_df[['Influent Water', 'Min', 'Max', 'Estimated', 'Notes']],
+        on='Influent Water',
+        how='left'
+    )
+    
+    # Format the display
+    df_display = df_display.rename(columns={week_col: 'Current Value'})
+    df_display['Range'] = df_display.apply(lambda x: f"{x['Min']} - {x['Max']}", axis=1)
+    display_cols = ['Details', 'Current Value', 'Range', 'Estimated', 'Notes']
+    
+    return df_display[display_cols].set_index('Details')
