@@ -1,4 +1,5 @@
 import plotly.graph_objects as go
+import pandas as pd
 
 def create_radar_chart(week_num, params, influent_data, treated_data, influent_ranges, treated_ranges, data_type='influent', show_comparison=False):
     """Create a radar chart for the specified data type and parameters"""
