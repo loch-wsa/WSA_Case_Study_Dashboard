@@ -1,5 +1,32 @@
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
+
+def normalize_parameter(value, param_name, param_min, param_max, param_type='standard'):
+    """
+    Normalize parameter values based on their type and range
+    
+    param_type options:
+    - 'standard': normalize from 0 to max (default)
+    - 'centered': normalize around a center point (like pH)
+    """
+    if pd.isna(value) or pd.isna(param_min) or pd.isna(param_max):
+        return 0
+        
+    try:
+        if param_type == 'centered':
+            # For parameters like pH that have an optimal middle range
+            mid_point = (param_max + param_min) / 2
+            max_distance = max(param_max - mid_point, mid_point - param_min)
+            normalized = 1 - abs(value - mid_point) / max_distance
+            return max(0, min(1, normalized))
+        else:
+            # Standard normalization from 0 to max
+            if param_max == param_min:
+                return 1 if value >= param_max else 0
+            return max(0, min(1, (value - param_min) / (param_max - param_min)))
+    except (TypeError, ValueError):
+        return 0
 
 def create_radar_chart(week_num, params, influent_data, treated_data, influent_ranges, treated_ranges, data_type='influent', show_comparison=False):
     """
@@ -16,61 +43,53 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
     values = df_filtered[week_col].values
     param_names = df_filtered['Influent Water'].tolist()
     
-    # Calculate max values and normalize data
-    max_values = []
-    min_values = []
-    actual_values = []  # Store non-normalized values for hover display
+    # Define which parameters should use centered normalization
+    centered_params = {'pH'}  # Add other parameters that should be centered
     
-    for param in param_names:
+    # Prepare arrays for values
+    actual_values = []
+    normalized_values = []
+    min_values = []
+    max_values = []
+    
+    for param, value in zip(param_names, values):
         range_row = ranges_df[ranges_df['Influent Water'] == param]
         if len(range_row) > 0:
-            max_val = range_row['Max'].values[0]
-            min_val = range_row['Min'].values[0]
-            max_values.append(float(max_val) if max_val != 0 else 1.0)
-            min_values.append(float(min_val))
+            min_val = float(range_row['Min'].values[0])
+            max_val = float(range_row['Max'].values[0])
         else:
-            # If no range data found, use the maximum value in the dataset
+            # If no range data found, use the dataset min/max
             param_data = data_df[data_df['Influent Water'] == param]
-            max_val = max([float(param_data[col].max()) for col in param_data.columns if col.startswith('Week')])
-            max_values.append(max_val if max_val != 0 else 1.0)
-            min_values.append(0)  # Default minimum if no range data
-    
-    # Normalize values
-    normalized_values = []
-    for val, max_val in zip(values, max_values):
+            week_cols = [col for col in param_data.columns if col.startswith('Week')]
+            min_val = min([float(param_data[col].min()) for col in week_cols])
+            max_val = max([float(param_data[col].max()) for col in week_cols])
+        
         try:
-            actual_values.append(float(val))  # Store actual value for hover
-            norm_val = float(val) / float(max_val) if max_val != 0 else 0
+            actual_val = float(value)
+            param_type = 'centered' if param in centered_params else 'standard'
+            norm_val = normalize_parameter(actual_val, param, min_val, max_val, param_type)
+            
+            actual_values.append(actual_val)
             normalized_values.append(norm_val)
+            min_values.append(min_val)
+            max_values.append(max_val)
         except (TypeError, ValueError):
             actual_values.append(0)
             normalized_values.append(0)
-    
-    # Calculate normalized minimum values
-    normalized_min_values = [min_val / max_val if max_val != 0 else 0 
-                           for min_val, max_val in zip(min_values, max_values)]
+            min_values.append(0)
+            max_values.append(1)
     
     # Create figure
     fig = go.Figure()
     
     # Add range area traces
     fig.add_trace(go.Scatterpolar(
-        r=[1] * len(param_names) + [1],  # Normalized max values
-        theta=param_names + [param_names[0]],  # Close the polygon
-        fill='tonext',
-        fillcolor='rgba(128, 128, 128, 0.2)',
-        line=dict(color='rgba(128, 128, 128, 0.5)'),
-        name='Acceptable Range',
-        hoverinfo='skip'
-    ))
-    
-    fig.add_trace(go.Scatterpolar(
-        r=normalized_min_values + [normalized_min_values[0]],  # Close the polygon
+        r=[1] * len(param_names) + [1],
         theta=param_names + [param_names[0]],
         fill='tonext',
         fillcolor='rgba(128, 128, 128, 0.2)',
         line=dict(color='rgba(128, 128, 128, 0.5)'),
-        showlegend=False,
+        name='Acceptable Range',
         hoverinfo='skip'
     ))
     
@@ -95,13 +114,23 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
     if show_comparison:
         treated_filtered = treated_data[treated_data['Influent Water'].isin(params)]
         treated_values = treated_filtered[week_col].values
-        treated_actual_values = []  # For hover display
+        treated_actual_values = []
         treated_normalized = []
         
-        for val, max_val in zip(treated_values, max_values):
+        for param, value in zip(param_names, treated_values):
+            range_row = treated_ranges[treated_ranges['Influent Water'] == param]
+            if len(range_row) > 0:
+                min_val = float(range_row['Min'].values[0])
+                max_val = float(range_row['Max'].values[0])
+            else:
+                continue
+                
             try:
-                treated_actual_values.append(float(val))
-                norm_val = float(val) / float(max_val) if max_val != 0 else 0
+                actual_val = float(value)
+                param_type = 'centered' if param in centered_params else 'standard'
+                norm_val = normalize_parameter(actual_val, param, min_val, max_val, param_type)
+                
+                treated_actual_values.append(actual_val)
                 treated_normalized.append(norm_val)
             except (TypeError, ValueError):
                 treated_actual_values.append(0)
@@ -128,7 +157,10 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
         polar=dict(
             radialaxis=dict(
                 visible=True,
-                range=[0, 1]  # Keep normalized range
+                range=[0, 1],
+                tickmode='array',
+                ticktext=['0%', '25%', '50%', '75%', '100%'],
+                tickvals=[0, 0.25, 0.5, 0.75, 1],
             )
         ),
         showlegend=True,
@@ -139,9 +171,9 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
                 showactive=False,
                 buttons=[
                     dict(label="Reset Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 1]}]),
-                    dict(label="2x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 0.5]}]),
-                    dict(label="4x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 0.25]}]),
-                    dict(label="8x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 0.125]}])
+                    dict(label="2x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0.5, 1]}]),
+                    dict(label="4x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0.75, 1]}]),
+                    dict(label="8x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0.875, 1]}])
                 ],
                 direction="right",
                 x=0.1,
