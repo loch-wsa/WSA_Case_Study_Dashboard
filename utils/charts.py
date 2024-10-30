@@ -138,27 +138,15 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
                 type="buttons",
                 showactive=False,
                 buttons=[
-                    dict(
-                        label="Reset Zoom",
-                        method="relayout",
-                        args=[{"polar.radialaxis.range": [0, 1]}]
-                    )
+                    dict(label="Reset Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 1]}]),
+                    dict(label="2x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 0.5]}]),
+                    dict(label="4x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 0.25]}]),
+                    dict(label="8x Zoom", method="relayout", args=[{"polar.radialaxis.range": [0, 0.125]}])
                 ],
+                direction="right",
                 x=0.1,
-                y=1.1
-            ),
-            dict(
-                type='slider',
-                active=0,
-                currentvalue={"prefix": "Zoom: "},
-                pad={"t": 50},
-                steps=[
-                    dict(
-                        method='relayout',
-                        label=f'{i}x',
-                        args=[{"polar.radialaxis.range": [0, 1/i]}]
-                    ) for i in [1, 2, 4, 8]
-                ]
+                y=1.1,
+                pad={"r": 10, "t": 10}
             )
         ]
     )
