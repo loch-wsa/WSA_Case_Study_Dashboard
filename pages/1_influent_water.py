@@ -19,9 +19,7 @@ influent_data, treated_data, influent_ranges, treated_ranges = load_data()
 st.sidebar.title('Control Panel')
 week_num = st.sidebar.slider('Select Week', 1, 7, 1)
 show_all = st.sidebar.checkbox('Show All Parameters', value=False)
-
-# Get parameters based on selection
-params = influent_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
+show_comparison = st.sidebar.checkbox('Show Comparison', value=False)
 
 # Main content
 st.header('Influent Water Analysis')
@@ -29,6 +27,9 @@ st.markdown(f"""
 Analysing raw pond water characteristics for Week {week_num}.  
 The data represents untreated water entering the Brolga system.
 """)
+
+# Get parameters based on selection
+params = influent_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
 
 # Create and display radar chart
 fig = create_radar_chart(
@@ -38,7 +39,8 @@ fig = create_radar_chart(
     treated_data, 
     influent_ranges, 
     treated_ranges, 
-    'influent'
+    'influent',
+    show_comparison=show_comparison
 )
 st.plotly_chart(fig, use_container_width=True)
 

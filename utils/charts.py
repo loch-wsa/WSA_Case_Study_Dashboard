@@ -106,21 +106,8 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
     # Create figure
     fig = go.Figure()
     
-    # Load zoom settings
-    try:
-        settings_file = Path(__file__).parent.parent / "config" / "settings.json"
-        if settings_file.exists():
-            settings = json.loads(settings_file.read_text())
-            zoom_levels = [
-                settings["zoom_levels"]["level1"],
-                settings["zoom_levels"]["level2"],
-                settings["zoom_levels"]["level3"]
-            ]
-        else:
-            zoom_levels = [1.5, 2.0, 4.0]  # defaults
-    except Exception as e:
-        print(f"Error loading settings: {e}")
-        zoom_levels = [1.5, 2.0, 4.0]  # defaults
+    # Set default zoom levels
+    zoom_levels = [1.5, 2.0, 4.0]  # defaults
     
     # Add range area traces
     fig.add_trace(go.Scatterpolar(

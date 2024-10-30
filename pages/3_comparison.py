@@ -20,15 +20,15 @@ st.sidebar.title('Control Panel')
 week_num = st.sidebar.slider('Select Week', 1, 7, 1)
 show_all = st.sidebar.checkbox('Show All Parameters', value=False)
 
-# Get parameters based on selection
-params = influent_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
-
 # Main content
 st.header('Water Quality Comparison')
 st.markdown(f"""
 Week {week_num} comparison between influent and treated water.  
 The smaller radar plot area for treated water demonstrates the effectiveness of the Brolga treatment process.
 """)
+
+# Get parameters based on selection
+params = influent_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
 
 # Create and display comparison radar chart
 fig = create_radar_chart(

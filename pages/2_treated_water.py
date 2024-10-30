@@ -19,30 +19,7 @@ influent_data, treated_data, influent_ranges, treated_ranges = load_data()
 st.sidebar.title('Control Panel')
 week_num = st.sidebar.slider('Select Week', 1, 7, 1)
 show_all = st.sidebar.checkbox('Show All Parameters', value=False)
-
-# Zoom controls
-zoom_method = st.sidebar.radio(
-    'Zoom Control Method',
-    ['Slider', 'Preset Levels'],
-    help='Choose how you want to control the zoom level'
-)
-
-if zoom_method == 'Slider':
-    zoom_level = st.sidebar.slider(
-        'Zoom Level',
-        min_value=1.0,
-        max_value=8.0,
-        value=1.0,
-        step=0.5,
-        help='Drag to adjust the zoom level (1x-8x)'
-    )
-else:
-    zoom_level = st.sidebar.selectbox(
-        'Select Zoom Level',
-        options=[1, 2, 4, 8],
-        format_func=lambda x: f'{x}x',
-        help='Choose a preset zoom level'
-    )
+show_comparison = st.sidebar.checkbox('Show Comparison', value=False)
 
 # Main content
 st.header('Treated Water Analysis')
@@ -62,24 +39,12 @@ fig = create_radar_chart(
     treated_data, 
     influent_ranges, 
     treated_ranges, 
-    'treated'
+    'treated',
+    show_comparison=show_comparison
 )
-
-# Update zoom level based on sidebar selection
-fig.update_layout({
-    "polar.radialaxis.range": [0, 1/zoom_level]  # Since we're using normalized values (0-1)
-})
 
 # Display the chart
 st.plotly_chart(fig, use_container_width=True)
-
-# Add a note about zooming
-st.info("""
-💡 **Zoom Tips:**
-- Use the sidebar controls to adjust the zoom level
-- You can also use the chart's built-in zoom slider or reset button
-- Double-click the chart to reset the view
-""")
 
 # Display parameter table
 st.markdown("### Treated Water Parameters")
