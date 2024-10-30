@@ -65,12 +65,12 @@ with col1:
 
 with col2:
     st.markdown("### Treatment Goals Achievement")
-    st.info("""
-    ✓ Pathogen removal targets met
-    ✓ Turbidity reduction achieved
-    ✓ pH within target range
-    ✓ Organic carbon reduction targets met
-    """)
+    st.info('''
+    ✓ Pathogen removal targets met  
+    ✓ Turbidity reduction achieved  
+    ✓ pH within target range  
+    ✓ Organic carbon reduction targets met  
+    ''')
 
 # Warning message
 st.sidebar.markdown('---')

@@ -1,6 +1,6 @@
 ﻿Influent Water,Details,Min,Max,Estimated,Notes
 ALKALINITY AS CACO3,Alkalinity - Total Alkalinity as CaCO3,0,500,Yes,Based on typical surface water range
-AS,MS Total Metals - Arsenic,0,0.5,Yes,Estimated max for treatment capability
+AS,MS Total Metals - Arsenic,0,0.5,No,Based on treatment capability - requires validation
 CO3 AS CACO3,Alkalinity - Carbonate Alkalinity as CaCO3,0,300,Yes,Estimated from typical raw water
 COLIFORM (C),Colilert (2000) - Coliform,0,5000,Yes,System can handle significant bacterial load
 DOC,DOC (SFA) - Dissolved Organic Carbon,0,20,Yes,Typical surface water range
@@ -13,15 +13,15 @@ MN,MS Total Metals - Manganese,0,5,Yes,Based on treatment capability
 NA,OES Scan - Sodium,0,500,Yes,Based on treatment capability
 OH AS CACO3,Alkalinity - Hydroxide Alkalinity as CaCO3,0,100,Yes,Estimated from typical raw water
 PB,MS Total Metals - Lead,0,0.5,Yes,Based on treatment capability
-PH,pH - pH,5,9,Yes,Typical range for membrane treatment
+PH,pH - pH,5,9,No,Aligned with membrane operational limits
 PLATE COUNT 36 C,Plate Count - Plate Count 36°C,0,10000,Yes,System can handle significant bacterial load
 SILICA,"React. Silica - Silica, reactive as SiO2",0,150,Yes,Based on treatment capability
-SUS SOLIDS,SS at 104+/- 2°C - Suspended Solids,0,400,No,From system turbidity sensor range
+SUS SOLIDS,SS at 104+/- 2°C - Suspended Solids,0,400,No,Aligned with turbidity sensor range TRB101
 TDS_180,TDS at 180°C +/- 5°C - Total Dissolved Solids,0,2000,No,From system CTR101 sensor range
 TOC,TOC (SFA) - Total Organic Carbon,0,25,Yes,Typical surface water range
 TRUE COLOUR,ColourFilt - Colour (filt),0,100,Yes,Based on treatment capability
 TURBIDITY,Turbidity - Turbidity,0,400,No,From system sensor TRB101 range
-UV TRANS,"UV Trans254 - UV Transmission at 254 nm, 1 cm path",20,100,Yes,System can handle poor UV transmission
+UV TRANS,"UV Trans254 - UV Transmission at 254 nm, 1 cm path",20,100,No,System requires minimum 20% transmission
 W-CHLORIDE(DA),Chloride - Chloride,0,1000,Yes,Based on treatment capability
 W-HARDNESS,Hardness,0,500,Yes,Based on treatment capability
 W-NO3-N,NO3-N - Nitrate as N,0,50,Yes,Based on treatment capability
