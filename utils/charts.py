@@ -46,6 +46,10 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
             actual_values.append(0)
             normalized_values.append(0)
     
+    # Calculate normalized minimum values
+    normalized_min_values = [min_val / max_val if max_val != 0 else 0 
+                           for min_val, max_val in zip(min_values, max_values)]
+    
     # Create figure
     fig = go.Figure()
     
