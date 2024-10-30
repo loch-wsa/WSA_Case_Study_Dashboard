@@ -17,19 +17,8 @@ influent_data, treated_data, influent_ranges, treated_ranges = load_data()
 
 # Sidebar controls
 st.sidebar.title('Control Panel')
-
-# Create two columns in the sidebar for better organization
-col1, col2 = st.sidebar.columns(2)
-
-# Week selector in first column
-week_num = col1.slider('Select Week', 1, 7, 1)
-
-# Show all parameters checkbox in second column
-show_all = col2.checkbox('Show All Parameters', value=False)
-
-# Add zoom controls with a subheader
-st.sidebar.markdown('---')
-st.sidebar.subheader('Visualization Controls')
+week_num = st.sidebar.slider('Select Week', 1, 7, 1)
+show_all = st.sidebar.checkbox('Show All Parameters', value=False)
 
 # Zoom controls
 zoom_method = st.sidebar.radio(
