@@ -164,9 +164,7 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
     fig.add_trace(go.Scatterpolar(
         r=normalized_values,
         theta=df_filtered['Influent Water'].tolist(),
-        name='Influent Water' if data_type == 'influent' else 'Treated Water',
-        fill='toself',
-        line=dict(color='#1f77b4' if data_type == 'influent' else '#2ca02c')
+        name='Influent Water' if data_type == 'influent' else 'Treated Water'
     ))
     
     if show_comparison:
@@ -185,8 +183,6 @@ def create_radar_chart(week_num, params, data_type='influent', show_comparison=F
             r=treated_normalized,
             theta=df_filtered['Influent Water'].tolist(),
             name='Treated Water',
-            fill='toself',
-            line=dict(color='#2ca02c')
         ))
     
     fig.update_layout(
