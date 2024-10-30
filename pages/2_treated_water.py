@@ -17,11 +17,43 @@ influent_data, treated_data, influent_ranges, treated_ranges = load_data()
 
 # Sidebar controls
 st.sidebar.title('Control Panel')
-week_num = st.sidebar.slider('Select Week', 1, 7, 1)
-show_all = st.sidebar.checkbox('Show All Parameters', value=False)
 
-# Get parameters based on selection
-params = treated_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
+# Create two columns in the sidebar for better organization
+col1, col2 = st.sidebar.columns(2)
+
+# Week selector in first column
+week_num = col1.slider('Select Week', 1, 7, 1)
+
+# Show all parameters checkbox in second column
+show_all = col2.checkbox('Show All Parameters', value=False)
+
+# Add zoom controls with a subheader
+st.sidebar.markdown('---')
+st.sidebar.subheader('Visualization Controls')
+
+# Zoom controls
+zoom_method = st.sidebar.radio(
+    'Zoom Control Method',
+    ['Slider', 'Preset Levels'],
+    help='Choose how you want to control the zoom level'
+)
+
+if zoom_method == 'Slider':
+    zoom_level = st.sidebar.slider(
+        'Zoom Level',
+        min_value=1.0,
+        max_value=8.0,
+        value=1.0,
+        step=0.5,
+        help='Drag to adjust the zoom level (1x-8x)'
+    )
+else:
+    zoom_level = st.sidebar.selectbox(
+        'Select Zoom Level',
+        options=[1, 2, 4, 8],
+        format_func=lambda x: f'{x}x',
+        help='Choose a preset zoom level'
+    )
 
 # Main content
 st.header('Treated Water Analysis')
@@ -29,6 +61,9 @@ st.markdown(f"""
 Showing treated water quality parameters for Week {week_num}.  
 This represents the Brolga system's output water quality after full treatment.
 """)
+
+# Get parameters based on selection
+params = treated_data['Influent Water'].tolist() if show_all else RELEVANT_PARAMS
 
 # Create and display radar chart
 fig = create_radar_chart(
@@ -40,7 +75,22 @@ fig = create_radar_chart(
     treated_ranges, 
     'treated'
 )
+
+# Update zoom level based on sidebar selection
+fig.update_layout({
+    "polar.radialaxis.range": [0, 1/zoom_level]  # Since we're using normalized values (0-1)
+})
+
+# Display the chart
 st.plotly_chart(fig, use_container_width=True)
+
+# Add a note about zooming
+st.info("""
+💡 **Zoom Tips:**
+- Use the sidebar controls to adjust the zoom level
+- You can also use the chart's built-in zoom slider or reset button
+- Double-click the chart to reset the view
+""")
 
 # Display parameter table
 st.markdown("### Treated Water Parameters")
