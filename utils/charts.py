@@ -106,6 +106,22 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
     # Create figure
     fig = go.Figure()
     
+    # Load zoom settings
+    try:
+        settings_file = Path(__file__).parent.parent / "config" / "settings.json"
+        if settings_file.exists():
+            settings = json.loads(settings_file.read_text())
+            zoom_levels = [
+                settings["zoom_levels"]["level1"],
+                settings["zoom_levels"]["level2"],
+                settings["zoom_levels"]["level3"]
+            ]
+        else:
+            zoom_levels = [1.5, 2.0, 4.0]  # defaults
+    except Exception as e:
+        print(f"Error loading settings: {e}")
+        zoom_levels = [1.5, 2.0, 4.0]  # defaults
+    
     # Add range area traces
     fig.add_trace(go.Scatterpolar(
         r=[1] * len(param_names) + [1],
@@ -134,8 +150,12 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
         text=range_texts
     ))
     
-    # Add comparison trace if requested
+    # Reorder traces to ensure treated water is on top if showing comparison
     if show_comparison:
+        # Remove the main trace we just added
+        fig.data = fig.data[:-1]
+        
+        # Get treated water data
         treated_filtered = treated_data[treated_data['Influent Water'].isin(params)]
         treated_values = treated_filtered[week_col].values
         treated_actual_values = []
@@ -191,7 +211,7 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
                 visible=True,
                 range=[0, 1],
                 tickmode='array',
-                ticktext=['Min', '25%', '50%', '75%', 'Max'],
+                ticktext=['0%', '25%', '50%', '75%', '100%'],
                 tickvals=[0, 0.25, 0.5, 0.75, 1],
             )
         ),
@@ -203,9 +223,12 @@ def create_radar_chart(week_num, params, influent_data, treated_data, influent_r
                 showactive=False,
                 buttons=[
                     dict(label="Reset View", method="relayout", args=[{"polar.radialaxis.range": [0, 1]}]),
-                    dict(label="Upper Range", method="relayout", args=[{"polar.radialaxis.range": [0.5, 1]}]),
-                    dict(label="Mid Range", method="relayout", args=[{"polar.radialaxis.range": [0.25, 0.75]}]),
-                    dict(label="Lower Range", method="relayout", args=[{"polar.radialaxis.range": [0, 0.5]}])
+                    dict(label=f"{zoom_levels[0]}×", method="relayout", 
+                         args=[{"polar.radialaxis.range": [max(0, 1-1/zoom_levels[0]), 1]}]),
+                    dict(label=f"{zoom_levels[1]}×", method="relayout", 
+                         args=[{"polar.radialaxis.range": [max(0, 1-1/zoom_levels[1]), 1]}]),
+                    dict(label=f"{zoom_levels[2]}×", method="relayout", 
+                         args=[{"polar.radialaxis.range": [max(0, 1-1/zoom_levels[2]), 1]}])
                 ],
                 direction="right",
                 x=0.1,
