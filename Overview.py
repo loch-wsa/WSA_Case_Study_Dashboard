@@ -67,7 +67,7 @@ st.header('Treatment System Performance')
 
 # Load Telemetry data
 telemetry_df = pd.read_csv("data/Telemetry.csv")
-telemetry_df['TIMESTAMP'] = pd.to_datetime(telemetry_df['TIMESTAMP'], format="%d/%m/%Y %H:%M:%S")
+telemetry_df['TIMESTAMP'] = pd.to_datetime(telemetry_df['TIMESTAMP'], dayfirst=True)
 
 # Calculate min and max dates for Telemetry
 min_date_telemetry = telemetry_df['TIMESTAMP'].min()
