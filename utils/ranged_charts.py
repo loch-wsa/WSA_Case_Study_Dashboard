@@ -4,123 +4,144 @@ import numpy as np
 import streamlit as st
 
 
-def plot_sensors(dataframes, high_high_threshold=12, high_threshold=9, low_threshold=5, low_low_threshold=2):
+def load_asset_info():
     """
-    Plots readings from multiple sensors with shaded areas indicating unsafe ranges.
+    Loads the asset information from Assets.csv
+    Returns a dictionary mapping sensor names to their display names and units
+    """
+    try:
+        assets_df = pd.read_csv('data/Assets.csv')
+        # Create a dictionary mapping sensor names to (display name, unit) tuples
+        asset_info = {
+            row['Sensor']: (row['Name'], row['Unit']) 
+            for _, row in assets_df.iterrows()
+        }
+        return asset_info
+    except Exception as e:
+        st.error(f"Error loading Assets.csv: {str(e)}")
+        return {}
 
+def get_chart_labels(sensor_name, asset_info):
+    """
+    Gets the appropriate chart labels for a given sensor
+    
     Parameters:
-    - dataframes (dict): Dictionary where keys are sensor names and values are DataFrames with 'Timestamp' and 'Value' columns.
-    - high_threshold (float): Upper safe Value limit. Default is 9.
-    - low_threshold (float): Lower safe Value limit. Default is 5.
+    - sensor_name (str): The sensor identifier
+    - asset_info (dict): Dictionary mapping sensor names to (display name, unit) tuples
+    
+    Returns:
+    - tuple: (title, y_axis_label)
     """
+    if sensor_name in asset_info:
+        display_name, unit = asset_info[sensor_name]
+        title = f'{display_name} Readings with Thresholds'
+        y_axis_label = f'{display_name} ({unit})'
+    else:
+        # Fallback to generic labels if sensor not found
+        title = 'Sensor Readings with Thresholds'
+        y_axis_label = 'Value Level'
+    
+    return title, y_axis_label
+
+def plot_sensors(dataframes, high_high_threshold=None, high_threshold=None, 
+                low_threshold=None, low_low_threshold=None):
+    """
+    Plots readings from multiple sensors with optional thresholds. Each threshold line and its
+    associated shading will only appear if that specific threshold value is provided.
+    
+    Parameters:
+    - dataframes (dict): Dictionary where keys are sensor names and values are DataFrames with 'TIMESTAMP' and 'Value' columns.
+    - high_high_threshold (float, optional): Highest threshold for unsafe values
+    - high_threshold (float, optional): Upper safe value limit
+    - low_threshold (float, optional): Lower safe value limit
+    - low_low_threshold (float, optional): Lowest threshold for unsafe values
+    """
+    
+    # Load asset information
+    asset_info = load_asset_info()
+ 
     fig = go.Figure()
-
     # Determine the full time range and y-axis range across all sensors
-    all_timestamps = pd.concat([df['Timestamp'] for df in dataframes.values()])
+    all_timestamps = pd.concat([df['TIMESTAMP'] for df in dataframes.values()])
     x_min, x_max = all_timestamps.min(), all_timestamps.max()
-
     all_values = pd.concat([df['Value'] for df in dataframes.values()])
-    y_min, y_max = all_values.min() - 1, all_values.max() + 1
-
-    # Adjust y_min and y_max if the max/min values don't exceed the thresholds
-    top_y = max(y_max, high_high_threshold + 0.1)
-    bottom_y = min(y_min, low_low_threshold - 0.1)
-
+    y_min, y_max = all_values.min(), all_values.max()
+    
     # Plot each sensor's data
     for sensor_name, df in dataframes.items():
+        # Get display name from asset info if available
+        display_name = asset_info[sensor_name][0] if sensor_name in asset_info else sensor_name
+        
         fig.add_trace(go.Scatter(
-            x=df['Timestamp'],
+            x=df['TIMESTAMP'],
             y=df['Value'],
             mode='lines',
-            name=sensor_name,
+            name=display_name,  # Use display name in legend
             line=dict(width=2)
         ))
 
-    # Add shaded regions for unsafe Value values, setting bounds correctly
-    # HIGH HIGH
-    fig.add_shape(type="rect",
-                  xref="x", yref="y",
-                  x0=x_min, y0=top_y,
-                  x1=x_max, y1=high_threshold,
-                  fillcolor="red", opacity=0.3, line_width=0, layer="below")
-                 
-    # HIGH
-    fig.add_shape(type="rect",
-                  xref="x", yref="y",
-                  x0=x_min, y0=high_threshold,
-                  x1=x_max, y1=high_high_threshold,
-                  fillcolor="yellow", opacity=0.3, line_width=0, layer="below")
+    # Add shaded regions and lines for each provided threshold
+    # HIGH zone (between high and high-high)
+    if not np.isnan(high_threshold) and not np.isnan(high_high_threshold):
+        fig.add_shape(type="rect",
+                    xref="x", yref="y",
+                    x0=x_min, y0=high_threshold,
+                    x1=x_max, y1=high_high_threshold,
+                    fillcolor="yellow", opacity=0.3, line_width=0, layer="below")
 
-    # LOW
-    fig.add_shape(type="rect",
-                  xref="x", yref="y",
-                  x0=x_min, y0=low_threshold,
-                  x1=x_max, y1=low_low_threshold,
-                  fillcolor="yellow", opacity=0.3, line_width=0, layer="below")
+    # LOW zone (between low and low-low)
+    if not np.isnan(low_threshold) and not np.isnan(low_low_threshold):
+        fig.add_shape(type="rect",
+                    xref="x", yref="y",
+                    x0=x_min, y0=low_threshold,
+                    x1=x_max, y1=low_low_threshold,
+                    fillcolor="yellow", opacity=0.3, line_width=0, layer="below")
     
-    # LOW LOW 
-    fig.add_shape(type="rect",
-                  xref="x", yref="y",
-                  x0=x_min, y0=low_low_threshold,
-                  x1=x_max, y1=bottom_y,
-                  fillcolor="red", opacity=0.3, line_width=0, layer="below")
-
-    # Add horizontal dashed lines for the thresholds
-    #HIGH HIGH
-    fig.add_hline(y=high_high_threshold, line=dict(color="red", dash="dash"),
-                  annotation_text="High High Threshold", annotation_position="top right")
+    # Add threshold lines independently
+    if not np.isnan(high_high_threshold):
+        fig.add_hline(y=high_high_threshold, line=dict(color="red", dash="dash"),
+                    annotation_text="High High Threshold", annotation_position="top right")
     
-    #HIGH
-    fig.add_hline(y=high_threshold, line=dict(color="yellow", dash="dash"),
-                  annotation_text="High Threshold", annotation_position="top right")
+    if not np.isnan(high_threshold):
+        fig.add_hline(y=high_threshold, line=dict(color="yellow", dash="dash"),
+                    annotation_text="High Threshold", annotation_position="top right")
     
-    # LOW 
-    fig.add_hline(y=low_threshold, line=dict(color="yellow", dash="dash"),
-                  annotation_text="Low Threshold", annotation_position="bottom right")
+    if not np.isnan(low_threshold):
+        fig.add_hline(y=low_threshold, line=dict(color="yellow", dash="dash"),
+                    annotation_text="Low Threshold", annotation_position="top right")
+    
+    if not np.isnan(low_low_threshold):
+   
+        fig.add_hline(y=low_low_threshold, line=dict(color="red", dash="dash"),
+                    annotation_text="Low Low Threshold", annotation_position="top right")
 
-    # LOW LOW 
-    fig.add_hline(y=low_low_threshold, line=dict(color="red", dash="dash"),
-                  annotation_text="Low Low Threshold", annotation_position="bottom right")
+    # Calculate y-axis range based on all provided values
+    all_thresholds = [t for t in [high_high_threshold, high_threshold, 
+                                low_threshold, low_low_threshold] if not np.isnan(t)]
 
-    # Update layout for clear display
+    if all_thresholds:
+        y_range = [
+            min(y_min, min(all_thresholds)),
+            max(y_max, max(all_thresholds))
+        ]
+    else:
+        y_range = [y_min, y_max]
+
+    # Get appropriate chart labels based on the first sensor
+    # (assuming all sensors in the chart are of the same type)
+    first_sensor = next(iter(dataframes.keys()))
+    title, y_axis_label = get_chart_labels(first_sensor, asset_info)
+    
+    # Update layout for clear display with dynamic labels
     fig.update_layout(
-        title='Sensor Readings with Thresholds',
+        title=title,
         xaxis_title='Time',
-        yaxis_title='Value Level',
+        yaxis_title=y_axis_label,
         xaxis=dict(range=[x_min, x_max]),
-        yaxis=dict(range=[low_low_threshold, high_high_threshold]),
+        yaxis=dict(range=y_range),
         showlegend=True,
         template="plotly_white"
     )
-
+    
     # Display in Streamlit
     st.plotly_chart(fig)
-
-def create_parameter_table(week_num, params, data_df, ranges_df):
-    """Create a formatted parameter table with special handling for Value display"""
-    week_col = f'Week {week_num}'
-    
-    # Create combined display dataframe
-    df_display = pd.merge(
-        data_df[data_df['Influent Water'].isin(params)][['Influent Water', 'Details', week_col]],
-        ranges_df[['Influent Water', 'Min', 'Max', 'Estimated', 'Notes']],
-        on='Influent Water',
-        how='left'
-    )
-    
-    # Add Value difference column if Value is present
-    if 'Value' in params:
-        mask = df_display['Influent Water'] == 'Value'
-        df_display.loc[mask, 'Value Difference'] = abs(df_display.loc[mask, week_col].astype(float) - 7.0)
-    
-    # Format the display
-    df_display = df_display.rename(columns={week_col: 'Current Value'})
-    df_display['Range'] = df_display.apply(lambda x: f"{x['Min']} - {x['Max']}", axis=1)
-    
-    # Define display columns with conditional Value difference
-    display_cols = ['Details', 'Current Value']
-    if 'Value' in params:
-        display_cols.append('Value Difference')
-    display_cols.extend(['Range', 'Estimated', 'Notes'])
-    
-    return df_display[display_cols].set_index('Details')

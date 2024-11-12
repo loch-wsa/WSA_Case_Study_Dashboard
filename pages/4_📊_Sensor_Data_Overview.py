@@ -1,162 +1,151 @@
 import streamlit as st
 import pandas as pd
+from datetime import timedelta
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+import os
+import sys
+from functools import lru_cache
 
-# Page config
-st.set_page_config(page_title="Sensor Data Overview", page_icon="📊", layout="wide")
+# Add the utils directory to the Python path
+utils_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+sys.path.append(utils_path)
 
-# Load telemetry data
-@st.cache_data
-def load_telemetry_data():
-    # Explicitly specify parse_dates and date parser
-    telemetry_df = pd.read_csv('data/Telemetry.csv')
-    # Convert TIMESTAMP column to datetime
-    telemetry_df['TIMESTAMP'] = pd.to_datetime(telemetry_df['TIMESTAMP'], dayfirst=True)
-    return telemetry_df
+# Import the function from ranged_charts.py
+from ranged_charts import plot_sensors
+from init import initialize_date_range
 
-# Define readable names for sensors
-SENSOR_NAMES = {
-    'FLM101_PRESSUREDIFF': 'Pre-Filter 1 Pressure Differential',
-    'FLM102_PRESSUREDIFF': 'Pre-Filter 2 Pressure Differential',
-    'FLM103_PRESSUREDIFF': 'Pre-Filter 3 Pressure Differential',
-    'FLM105_PRESSUREDIFF': 'Carbon Filter Pressure Differential',
-    'FLU101_TMP': 'Membrane Trans-membrane Pressure',
-    'FLU101_TCSF': 'Membrane Temperature Corrected Specific Flux',
-    'UVM101_DOSE': 'UV Disinfection Dose',
-    'CTR101_CONDUCTIVITY': 'Input Water Conductivity',
-    'CTR101_TEMPERATURE': 'Input Water Temperature',
-    'TRB101_TURBIDITY': 'Input Water Turbidity',
-    'TRB101_TEMPERATURE': 'Input Water Temperature',
-    'TRB102_TURBIDITY': 'Output Water Turbidity',
-    'TRB102_TEMPERATURE': 'Output Water Temperature'
-}
+# Cache the data loading function
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def load_and_process_telemetry():
+    """Load and process telemetry data with caching"""
+    df = pd.read_csv('data/Telemetry.csv', parse_dates=['TIMESTAMP'])
+    return df
 
-# Define units for sensors
-SENSOR_UNITS = {
-    'FLM101_PRESSUREDIFF': 'bar',
-    'FLM102_PRESSUREDIFF': 'bar',
-    'FLM103_PRESSUREDIFF': 'bar',
-    'FLM105_PRESSUREDIFF': 'bar',
-    'FLU101_TMP': 'bar',
-    'FLU101_TCSF': 'lmh/bar',
-    'UVM101_DOSE': 'mJ/cm²',
-    'CTR101_CONDUCTIVITY': 'µS/cm',
-    'CTR101_TEMPERATURE': '°C',
-    'TRB101_TURBIDITY': 'NTU',
-    'TRB101_TEMPERATURE': '°C',
-    'TRB102_TURBIDITY': 'NTU',
-    'TRB102_TEMPERATURE': '°C'
-}
+# Cache the thresholds loading
+@st.cache_data(ttl=3600)
+def load_thresholds():
+    """Load threshold data with caching"""
+    return pd.read_csv('data/Thresholds.csv')
 
-telemetry_df = load_telemetry_data()
+# Cache component processing
+@st.cache_data(ttl=3600)
+def process_available_components(telemetry_df, thresholds_df):
+    """Process and return available components with caching"""
+    # Get telemetry columns excluding 'TIMESTAMP'
+    telemetry_columns = set(col for col in telemetry_df.columns if col != 'TIMESTAMP')
+    
+    # Get unique components from thresholds dataframe
+    threshold_components = set(thresholds_df['Component'].unique())
+    
+    # Find intersection while preserving case
+    available_components = telemetry_columns.intersection(threshold_components)
+    
+    # Return sorted list of components
+    return sorted(available_components)
 
-# Title and description
-st.title("📊 Sensor Data Overview")
-st.markdown("""
-    This page provides line charts for various sensor measurements over time. Each chart represents data from a specific sensor.
-    Use the controls below to adjust the time range and view specific periods of interest.
-""")
+# Cache threshold processing for components
+@st.cache_data(ttl=3600)
+def get_component_thresholds(thresholds_df, component):
+    """Get thresholds for a specific component with caching"""
+    threshold = thresholds_df[thresholds_df['Component'] == component]
+    if not threshold.empty:
+        return {
+            'high_high': threshold['HighHigh'].values[0],
+            'high': threshold['High'].values[0],
+            'low': threshold['Low'].values[0],
+            'low_low': threshold['LowLow'].values[0]
+        }
+    return {
+        'high_high': None,
+        'high': None,
+        'low': None, 
+        'low_low': None
+    }
 
-# Time range controls in sidebar
-st.sidebar.title("Time Range Controls")
+def main():
+    # Title and description
+    st.title("📊 Sensor Data Overview")
+    st.markdown("""
+        This page provides line charts for various sensor measurements over time. Each chart represents data from a specific sensor.
+        Use the controls below to adjust the time range and view specific periods of interest.
+    """)
 
-# Preset time range buttons
-time_ranges = {
-    "Last Day": timedelta(days=1),
-    "Last Week": timedelta(days=7),
-    "Last Month": timedelta(days=30),
-    "Last Year": timedelta(days=365),
-    "Custom Range": None
-}
-
-selected_range = st.sidebar.radio("Select Time Range", list(time_ranges.keys()))
-
-# Convert to pandas timestamp for calculations
-latest_date = telemetry_df['TIMESTAMP'].max()
-earliest_date = telemetry_df['TIMESTAMP'].min()
-
-# Date range selector (only shown for custom range)
-if selected_range == "Custom Range":
-    start_date = st.sidebar.date_input(
-        "Start Date",
-        earliest_date.date()
-    )
-    end_date = st.sidebar.date_input(
-        "End Date",
-        latest_date.date()
-    )
-    start_datetime = pd.Timestamp(start_date)
-    end_datetime = pd.Timestamp(end_date) + pd.Timedelta(days=1)
-else:
-    end_datetime = latest_date
-    start_datetime = end_datetime - pd.Timedelta(time_ranges[selected_range])
-
-# Filter data based on selected time range
-filtered_df = telemetry_df[
-    (telemetry_df['TIMESTAMP'] >= start_datetime) & 
-    (telemetry_df['TIMESTAMP'] <= end_datetime)
-].copy()
-
-# Format timestamps based on selected range
-if selected_range == "Last Day":
-    filtered_df['display_time'] = filtered_df['TIMESTAMP'].dt.strftime('%H:%M')
-elif selected_range == "Last Week":
-    filtered_df['display_time'] = filtered_df['TIMESTAMP'].dt.strftime('%a %H:%M')
-elif selected_range == "Last Month":
-    filtered_df['display_time'] = filtered_df['TIMESTAMP'].dt.strftime('%d-%b')
-else:
-    filtered_df['display_time'] = filtered_df['TIMESTAMP'].dt.strftime('%d-%b-%Y')
-
-# Define the tags to be plotted
-tags = [
-    'FLM101_PRESSUREDIFF', 'FLM102_PRESSUREDIFF', 'FLM103_PRESSUREDIFF', 'FLM105_PRESSUREDIFF',
-    'FLU101_TMP', 'FLU101_TCSF',
-    'UVM101_DOSE',
-    'CTR101_CONDUCTIVITY', 'CTR101_TEMPERATURE',
-    'TRB101_TURBIDITY', 'TRB101_TEMPERATURE',
-    'TRB102_TURBIDITY', 'TRB102_TEMPERATURE'
-]
-
-# Plot each tag as a line chart
-for tag in tags:
-    if tag in filtered_df.columns:
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=filtered_df['display_time'],
-            y=filtered_df[tag],
-            mode='lines',
-            name=SENSOR_NAMES.get(tag, tag),
-            line=dict(width=2)
-        ))
+    try:
+        # Initialize session state for configurations
+        if 'init' not in st.session_state:
+            st.session_state.init = True
+            st.session_state.show_raw_data = False
         
-        # Customize chart layout
-        fig.update_layout(
-            title=SENSOR_NAMES.get(tag, tag),
-            xaxis_title="Time",
-            yaxis_title=f"{SENSOR_NAMES.get(tag, tag)} ({SENSOR_UNITS.get(tag, '')})",
-            height=400,
-            showlegend=False
+        # Load data using cached functions
+        with st.spinner('Loading telemetry data...'):
+            telemetry_df = load_and_process_telemetry()
+            thresholds_df = load_thresholds()
+        
+        # Initialize date range controls and get filtered data
+        filtered_telemetry_df, display_format = initialize_date_range(telemetry_df)
+        
+        # Get available components using cached function
+        available_components = process_available_components(filtered_telemetry_df, thresholds_df)
+        
+        # Component selector with multiselect checkboxes
+        selected_components = st.multiselect(
+            'Select Components to Display',
+            options=available_components,
+            default=['PTC109_PRESSURE'] if 'PTC109_PRESSURE' in available_components else []
         )
         
-        # Update x-axis layout based on time range
-        if selected_range in ["Last Day", "Last Week"]:
-            fig.update_xaxes(nticks=24)
+        # Process selected components efficiently
+        for component in selected_components:
+            st.subheader(f"{component} Sensor Readings")
+            
+            # Get component data
+            component_data = filtered_telemetry_df[['TIMESTAMP', component]].dropna()
+            if not component_data.empty:
+                df_dict = {
+                    component: component_data.rename(
+                        columns={'timestamp': 'Timestamp', component: 'Value'}
+                    )
+                }
+                
+                # Get thresholds using cached function
+                thresholds = get_component_thresholds(thresholds_df, component)
+                
+                # Plot the component data
+                plot_sensors(
+                    df_dict,
+                    high_high_threshold=thresholds['high_high'],
+                    high_threshold=thresholds['high'],
+                    low_threshold=thresholds['low'],
+                    low_low_threshold=thresholds['low_low']
+                )
         
-        # Display each chart
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning(f"Column {tag} is missing in telemetry data.")
+        # Toggle for raw data visibility
+        st.session_state.show_raw_data = st.toggle('Show Raw Data', st.session_state.show_raw_data)
+        
+        # Display raw data in an expandable section if toggled
+        if st.session_state.show_raw_data:
+            st.write("Telemetry Data Sample (last 5 records):")
+            st.dataframe(
+                filtered_telemetry_df[['TIMESTAMP'] + selected_components].tail(),
+                use_container_width=True
+            )
+            
+            st.write("\nThreshold Settings for Selected Components:")
+            st.dataframe(
+                thresholds_df[thresholds_df['Component'].isin(selected_components)],
+                use_container_width=True
+            )
 
-# Add information about data timespan
-st.sidebar.markdown("---")
-st.sidebar.markdown(f"**Data Range:**  \n{start_datetime.strftime('%Y-%m-%d %H:%M')} to {end_datetime.strftime('%Y-%m-%d %H:%M')}")
+    except Exception as e:
+        st.error(f"Error loading or processing data: {str(e)}")
+        st.write("Please check that both 'Telemetry.csv' and 'Thresholds.csv' files are in the correct location")
+        st.write("Error details:", str(e))
 
-# Print data info for debugging
-st.sidebar.markdown("---")
-if st.sidebar.checkbox("Show Debug Info"):
-    st.sidebar.write("Data Types:")
-    st.sidebar.write(telemetry_df.dtypes)
-    st.sidebar.write("Date Range:")
-    st.sidebar.write(f"Earliest: {earliest_date}")
-    st.sidebar.write(f"Latest: {latest_date}")
+if __name__ == "__main__":
+    st.set_page_config(
+        page_title="Telemetry Dashboard",
+        page_icon="📊",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    main()
