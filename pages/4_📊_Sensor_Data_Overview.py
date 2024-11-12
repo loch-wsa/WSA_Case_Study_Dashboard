@@ -62,6 +62,16 @@ def get_component_thresholds(thresholds_df, component):
         'low_low': None
     }
 
+@st.cache_data(ttl=3600)
+def remove_outliers(data, column):
+    """Remove outliers using the IQR method"""
+    Q1 = data[column].quantile(0.25)
+    Q3 = data[column].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    return data[(data[column] >= lower_bound) & (data[column] <= upper_bound)]
+    
 def main():
     # Title and description
     st.title("📊 Sensor Data Overview")
@@ -69,6 +79,22 @@ def main():
         This page provides line charts for various sensor measurements over time. Each chart represents data from a specific sensor.
         Use the controls below to adjust the time range and view specific periods of interest.
     """)
+
+    with st.sidebar:
+        st.header("Configuration")
+        remove_outliers_enabled = st.toggle("Remove Outliers", value=False)
+        
+        if remove_outliers_enabled:
+            st.info("""
+                **Outlier Removal Formula:**
+                - Calculate Q1 (25th percentile) and Q3 (75th percentile)
+                - Calculate IQR = Q3 - Q1
+                - Remove data points outside range:
+                  - Lower bound = Q1 - 1.5 × IQR
+                  - Upper bound = Q3 + 1.5 × IQR
+                
+                This is known as the Interquartile Range (IQR) method.
+            """)
 
     try:
         # Initialize session state for configurations
@@ -100,6 +126,14 @@ def main():
             
             # Get component data
             component_data = filtered_telemetry_df[['TIMESTAMP', component]].dropna()
+            
+            if remove_outliers_enabled:
+                original_count = len(component_data)
+                component_data = remove_outliers(component_data, component)
+                removed_count = original_count - len(component_data)
+                if removed_count > 0:
+                    st.caption(f"Removed {removed_count} outliers from {component}")
+            
             if not component_data.empty:
                 df_dict = {
                     component: component_data.rename(
