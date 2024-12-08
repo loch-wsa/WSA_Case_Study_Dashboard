@@ -27,11 +27,12 @@ st.markdown("""
 """)
 
 # Create tabs for different analyses
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "System Uptime", 
     "Production Efficiency",
     "Maintenance Cycles",
-    "CIP Analysis"
+    "CIP Analysis",
+    "Power Cycles"
 ])
 
 with tab1:
@@ -208,3 +209,125 @@ with tab4:
     
     # Display the line chart
     st.plotly_chart(fig_pressure, use_container_width=True)
+
+with tab5:
+    st.header("Power Cycle Analysis")
+    st.markdown("""
+        Analysis of component power cycling frequency and patterns. This tracks how often different
+        components cycle through their operational states.
+    """)
+    
+    # Convert timestamps to datetime if they aren't already
+    if sequences_df['timestamp'].dtype == 'object':
+        sequences_df['timestamp'] = pd.to_datetime(sequences_df['timestamp'], dayfirst=True)
+    
+    # Define what constitutes a cycle for each component
+    components = {
+        'UV System': ['START', 'WAIT', 'PRODUCTION'],  # UV cycles when system starts production
+        'Membrane': ['MEMBRANEDIRECTINTEGRITYTEST', 'MEMBRANEREFILL'],  # Membrane cycles during DIT and refill
+        'Pre-filter': ['PREFILTERFLUSH'],  # Pre-filter cycles during flush
+        'Feed Pump': ['PRODUCTION', 'WAIT'],  # Feed pump cycles between production and wait
+        'System': ['START', 'TAGOUT']  # Overall system power cycles
+    }
+    
+    # Calculate cycle metrics for each component
+    cycle_metrics = []
+    
+    for component, states in components.items():
+        # Get sequences for this component
+        component_sequences = sequences_df[
+            sequences_df['code'].isin(states) |
+            sequences_df['message'].apply(lambda x: any(state in str(x) for state in states))
+        ].copy()  # Create a copy to avoid SettingWithCopyWarning
+        
+        if len(component_sequences) > 0:
+            # Sort by timestamp
+            component_sequences = component_sequences.sort_values('timestamp')
+            
+            # Calculate time differences between cycles in minutes
+            time_diffs_minutes = component_sequences['timestamp'].diff().dt.total_seconds() / 60
+            
+            # Calculate period duration in days
+            period_duration = (component_sequences['timestamp'].max() - 
+                             component_sequences['timestamp'].min()).total_seconds() / (24 * 60 * 60)
+            
+            cycle_metrics.append({
+                'Component': component,
+                'Total Cycles': len(component_sequences),
+                'Min Time Between (min)': time_diffs_minutes.min() if not time_diffs_minutes.empty else 0,
+                'Max Time Between (min)': time_diffs_minutes.max() if not time_diffs_minutes.empty else 0,
+                'Avg Time Between (min)': time_diffs_minutes.mean() if not time_diffs_minutes.empty else 0,
+                'Cycles per Day': len(component_sequences) / period_duration if period_duration > 0 else 0
+            })
+        else:
+            cycle_metrics.append({
+                'Component': component,
+                'Total Cycles': 0,
+                'Min Time Between (min)': 0,
+                'Max Time Between (min)': 0,
+                'Avg Time Between (min)': 0,
+                'Cycles per Day': 0
+            })
+
+    # Display summary metrics
+    cols = st.columns(len(components))
+    for i, data in enumerate(cycle_metrics):
+        with cols[i]:
+            st.metric(
+                f"{data['Component']}", 
+                f"{int(data['Total Cycles'])} cycles",
+                f"{data['Cycles per Day']:.1f}/day"
+            )
+
+    # Create detailed metrics table
+    st.markdown("### Detailed Cycle Metrics")
+    cycle_df = pd.DataFrame(cycle_metrics)
+    formatted_df = cycle_df.copy()
+    for col in ['Min Time Between (min)', 'Max Time Between (min)', 
+                'Avg Time Between (min)', 'Cycles per Day']:
+        formatted_df[col] = formatted_df[col].round(1)
+    st.dataframe(formatted_df.set_index('Component'), use_container_width=True)
+    
+    # Create timeline visualization
+    st.markdown("### Component Cycling Timeline")
+    
+    # Prepare timeline data
+    timeline_data = []
+    for component, states in components.items():
+        component_sequences = sequences_df[
+            sequences_df['code'].isin(states) |
+            sequences_df['message'].apply(lambda x: any(state in str(x) for state in states))
+        ]
+        
+        for _, row in component_sequences.iterrows():
+            timeline_data.append({
+                'Component': component,
+                'Timestamp': row['timestamp'],
+                'State': row['code']
+            })
+    
+    if timeline_data:
+        timeline_df = pd.DataFrame(timeline_data)
+        fig_timeline = px.scatter(
+            timeline_df, 
+            x='Timestamp', 
+            y='Component',
+            hover_data=['State'],
+            title='Component Power Cycles Over Time'
+        )
+        fig_timeline.update_traces(marker=dict(size=10))
+        fig_timeline.update_layout(height=400)
+        st.plotly_chart(fig_timeline, use_container_width=True)
+
+        # Add some insights about the cycling patterns
+        st.markdown("### Cycling Pattern Insights")
+        
+        for component, data in zip(components.keys(), cycle_metrics):
+            if data['Total Cycles'] > 0:
+                st.markdown(f"""
+                - **{component}**: {int(data['Total Cycles'])} cycles total, averaging 
+                {data['Cycles per Day']:.1f} cycles per day. Typical time between cycles: 
+                {data['Avg Time Between (min)']:.1f} minutes.
+                """)
+    else:
+        st.warning("No cycle data available for visualization")

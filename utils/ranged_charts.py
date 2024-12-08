@@ -80,49 +80,58 @@ def plot_sensors(dataframes, high_high_threshold=None, high_threshold=None,
             line=dict(width=2)
         ))
 
+    # Helper function to safely check if a threshold is valid
+    def is_valid_threshold(threshold):
+        if threshold is None:
+            return False
+        try:
+            return not pd.isna(threshold) and isinstance(float(threshold), float)
+        except (ValueError, TypeError):
+            return False
+
     # Add shaded regions and lines for each provided threshold
     # HIGH zone (between high and high-high)
-    if not np.isnan(high_threshold) and not np.isnan(high_high_threshold):
+    if is_valid_threshold(high_threshold) and is_valid_threshold(high_high_threshold):
         fig.add_shape(type="rect",
                     xref="x", yref="y",
-                    x0=x_min, y0=high_threshold,
-                    x1=x_max, y1=high_high_threshold,
+                    x0=x_min, y0=float(high_threshold),
+                    x1=x_max, y1=float(high_high_threshold),
                     fillcolor="yellow", opacity=0.3, line_width=0, layer="below")
 
     # LOW zone (between low and low-low)
-    if not np.isnan(low_threshold) and not np.isnan(low_low_threshold):
+    if is_valid_threshold(low_threshold) and is_valid_threshold(low_low_threshold):
         fig.add_shape(type="rect",
                     xref="x", yref="y",
-                    x0=x_min, y0=low_threshold,
-                    x1=x_max, y1=low_low_threshold,
+                    x0=x_min, y0=float(low_threshold),
+                    x1=x_max, y1=float(low_low_threshold),
                     fillcolor="yellow", opacity=0.3, line_width=0, layer="below")
     
     # Add threshold lines independently
-    if not np.isnan(high_high_threshold):
-        fig.add_hline(y=high_high_threshold, line=dict(color="red", dash="dash"),
+    if is_valid_threshold(high_high_threshold):
+        fig.add_hline(y=float(high_high_threshold), line=dict(color="red", dash="dash"),
                     annotation_text="High High Threshold", annotation_position="top right")
     
-    if not np.isnan(high_threshold):
-        fig.add_hline(y=high_threshold, line=dict(color="yellow", dash="dash"),
+    if is_valid_threshold(high_threshold):
+        fig.add_hline(y=float(high_threshold), line=dict(color="yellow", dash="dash"),
                     annotation_text="High Threshold", annotation_position="top right")
     
-    if not np.isnan(low_threshold):
-        fig.add_hline(y=low_threshold, line=dict(color="yellow", dash="dash"),
+    if is_valid_threshold(low_threshold):
+        fig.add_hline(y=float(low_threshold), line=dict(color="yellow", dash="dash"),
                     annotation_text="Low Threshold", annotation_position="top right")
     
-    if not np.isnan(low_low_threshold):
-   
-        fig.add_hline(y=low_low_threshold, line=dict(color="red", dash="dash"),
+    if is_valid_threshold(low_low_threshold):
+        fig.add_hline(y=float(low_low_threshold), line=dict(color="red", dash="dash"),
                     annotation_text="Low Low Threshold", annotation_position="top right")
 
-    # Calculate y-axis range based on all provided values
-    all_thresholds = [t for t in [high_high_threshold, high_threshold, 
-                                low_threshold, low_low_threshold] if not np.isnan(t)]
+    # Calculate y-axis range based on all valid threshold values
+    valid_thresholds = [float(t) for t in [high_high_threshold, high_threshold, 
+                                         low_threshold, low_low_threshold] 
+                       if is_valid_threshold(t)]
 
-    if all_thresholds:
+    if valid_thresholds:
         y_range = [
-            min(y_min, min(all_thresholds)),
-            max(y_max, max(all_thresholds))
+            min(y_min, min(valid_thresholds)),
+            max(y_max, max(valid_thresholds))
         ]
     else:
         y_range = [y_min, y_max]
