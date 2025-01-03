@@ -11,7 +11,7 @@ from utils.data_loader import load_data, RELEVANT_PARAMS
 # Page configuration
 st.set_page_config(
     layout="wide",
-    page_title="Brolga Water Treatment Trial - Point Leo",
+    page_title="Brolga Water Treatment Trial - Flinders",
     page_icon="💧"
 )
 
@@ -19,7 +19,7 @@ st.set_page_config(
 influent_data, treated_data, influent_ranges, treated_ranges = load_data()
 
 # Project Overview Section
-st.title('Brolga Water Treatment System - Point Leo Trial')
+st.title('Brolga Water Treatment System - Flinders Trial')
 
 # Define column layout
 col1, col2 = st.columns([1.5, 1])
@@ -30,7 +30,7 @@ with col1:
     '''
         ### Project Description
         
-        The Point Leo trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application.
+        The Flinders trial demonstrates Water Source Australia's Brolga water treatment system in a real-world application.
         This pilot project processes pond water through a multi-barrier treatment approach to achieve potable water quality standards.  
     '''
     )
@@ -41,7 +41,7 @@ with col2:
     '''
         ### Key Details  
         
-        - **Trial Location**: Point Leo Farm, Frankston-Flinders Road  
+        - **Trial Location**: Flinders Farm, Frankston-Flinders Road  
         - **Source Water**: Farm Pond  
         - **Treatment Goal**: Potable Water Quality  
     '''
